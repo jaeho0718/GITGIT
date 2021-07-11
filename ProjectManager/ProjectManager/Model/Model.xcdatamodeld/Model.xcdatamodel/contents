@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="18154" systemVersion="20F71" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="Hashtag" representedClassName="Hashtag" syncable="YES" codeGenerationType="class">
+        <attribute name="tag" optional="YES" attributeType="String"/>
+        <attribute name="tagID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="Repository" representedClassName="Repository" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="pin" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="site" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="Research" representedClassName="Research" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="memo" optional="YES" attributeType="String"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="tagID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="Site" representedClassName="Site" syncable="YES" codeGenerationType="class">
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="tagID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="url" optional="YES" attributeType="String"/>
+    </entity>
+    <elements>
+        <element name="Hashtag" positionX="-18" positionY="27" width="128" height="59"/>
+        <element name="Repository" positionX="-63" positionY="-18" width="128" height="89"/>
+        <element name="Research" positionX="-54" positionY="-9" width="128" height="89"/>
+        <element name="Site" positionX="-36" positionY="9" width="128" height="74"/>
+    </elements>
+</model>
