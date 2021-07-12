@@ -126,6 +126,7 @@ struct Repository_Info : Codable{
     var full_name : String //Repository fullname
     var html_url : String //Repository site
     var description : String? //Repository description
+    var language : String? //Repository language
 }
 /*
  {
@@ -214,4 +215,32 @@ struct Repository_Info : Codable{
 struct Repositories_Info : Codable{
     var total_count : Int
     var items : [Repository_Info]
+}
+
+struct Issues : Codable,Identifiable{
+    var id : Int
+    var title : String
+    var number : Int
+    var user : Issue_user
+    var assignees : [Assignee]
+    var created_at : String
+    var updated_at : String?
+    var comments : Int
+    var body : String
+}
+
+struct Assignee : Codable{
+    var login : String
+}
+
+struct Issue_user : Codable{
+    var login : String
+    //var type : String
+}
+
+struct IssuePost : Codable{
+    var title : String
+    var body : String
+    var assignees : [String]
+    var labels : [String]
 }
