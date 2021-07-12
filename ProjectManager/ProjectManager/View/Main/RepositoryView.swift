@@ -14,7 +14,7 @@ struct RepositoryView: View {
     var body: some View {
         NavigationView{
             List{
-                NavigationLink(destination:GitubPage(url: repo_data.site ?? ""),isActive : $start){
+                NavigationLink(destination:GitubPage(repository: repo_data),isActive : $start){
                     GroupBox{
                         VStack(alignment:.leading){
                             Text("GITHUB").font(.body)
