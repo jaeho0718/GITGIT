@@ -15,19 +15,19 @@ struct RepositoryView: View {
         NavigationView{
             List{
                 NavigationLink(destination:GitubPage(repository: repo_data),isActive : $start){
-                    GroupBox{
-                        VStack(alignment:.leading){
-                            Text("GITHUB").font(.body)
-                            Text(repo_data.site ?? "").font(.caption).opacity(0.7)
-                        }.frame(maxWidth:.infinity)
-                    }
+                    Label("Issues", systemImage: "ladybug.fill")
                 }
                 Section(header:Label("자료", systemImage: "folder.fill")){
                     ForEach(viewmodel.Researchs.filter({$0.id == repo_data.id})){ research in
                         NavigationLink(destination:MemoDetailView(research: research)){
                             HStack{
-                                Image(systemName: "doc.plaintext.fill")
-                                Text(research.name ?? "No")
+                                if let _ = research.issue_url{
+                                    //이슈와 연결되있으면
+                                    Image(systemName: "link")
+                                }else{
+                                    Image(systemName: "doc.plaintext.fill")
+                                }
+                                Text(research.name ?? "...")
                             }
                         }
                     }.onDelete(perform: deleteResearchs)
@@ -41,12 +41,9 @@ struct RepositoryView: View {
                 Section(header:Label("HashTag", systemImage: "h.square")){
                     ForEach(viewmodel.Hashtags){ hash in
                         NavigationLink(destination:HashDetailView(hash_data: hash)){
-                            Text("#\(hash.tag ?? "")")
+                            Text("# \(hash.tag ?? "")").bold().padding([.top,.bottom],5).padding([.leading,.trailing],10).overlay(Capsule().stroke(lineWidth: 1.5)).padding(.leading,3)
                         }
                     }.onDelete(perform: deleteHash)
-                }
-                Section(header:Label("추천 정보", systemImage: "h.square")){
-                    
                 }
             }
             
