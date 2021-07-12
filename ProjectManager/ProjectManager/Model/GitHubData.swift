@@ -219,6 +219,7 @@ struct Repositories_Info : Codable{
 
 struct Issues : Codable,Identifiable{
     var id : Int
+    var html_url : String
     var title : String
     var number : Int
     var user : Issue_user
@@ -243,4 +244,18 @@ struct IssuePost : Codable{
     var body : String
     var assignees : [String]
     var labels : [String]
+}
+
+struct CommentsPost : Codable{
+    var body : String
+    var assignees : [String]
+    var labels : [String]
+}
+
+struct Comments : Codable,Identifiable{
+    var id : Int
+    var user : Issue_user
+    var created_at : String
+    var updated_at : String?
+    var body : String
 }

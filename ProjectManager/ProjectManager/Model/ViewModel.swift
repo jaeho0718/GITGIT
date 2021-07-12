@@ -71,13 +71,14 @@ class ViewModel : ObservableObject{
     
     /// Save Research
     /// sites is weblinks
-    func saveResearch(name : String,memo : String, repo_ID : String,hash:String,sites:[Research_Info]){
+    func saveResearch(name : String,memo : String, repo_ID : String,hash:String,sites:[Research_Info],issue_url : String? = nil){
         let tagID = UUID()
         let research = Research(context: container.viewContext)
         research.id = repo_ID
         research.tagID = tagID
         research.name = name
         research.memo = memo
+        research.issue_url = issue_url
         for site in sites{
             site.getSiteName(completion: { title in
                 self.saveSite(tagID: tagID, name: title, url: site.url_str)
@@ -304,7 +305,7 @@ extension ViewModel{
 
 extension ViewModel{
     //Github Upload
-    
+    /// Create Issue
     func createIssues(repo : Repository,title:String,body:String){
         if let user = self.UserInfo{
             //let test = IssuePost(title: "Github Issue Post Test", body: "Hello_World", assignees: ["jaeho0718"], labels: [])
@@ -321,7 +322,7 @@ extension ViewModel{
                             print(error.localizedDescription)
                         }
                         if let data = data,let data_str = String(data: data, encoding: .utf8){
-                            print("data : \(data_str)")
+                            //print("data : \(data_str)")
                         }
                     }
                     DispatchQueue.main.async {
@@ -344,8 +345,59 @@ extension ViewModel{
                     do{
                         let data = try JSONSerialization.data(withJSONObject: value, options: .prettyPrinted)
                         let repos = try JSONDecoder().decode([Issues].self, from: data)
-                        print(repos)
+                        //print(repos)
                         complication(repos)
+                    }catch let error{
+                        print("Fail to change issue to json : \(error.localizedDescription)")
+                    }
+                case .failure(let error):
+                    print("Issues get Error : \(error.localizedDescription)")
+                }
+            })
+        }
+    }
+    
+    func createComments(repo : Repository,number:Int,body:String){
+        if let user = self.UserInfo{
+            //let test = IssuePost(title: "Github Issue Post Test", body: "Hello_World", assignees: ["jaeho0718"], labels: [])
+            let issue = CommentsPost(body: body, assignees: [user.user_name], labels: [])
+            do{
+                let json = try JSONEncoder().encode(issue)
+                if let url = URL(string: "https://api.github.com/repos/\(user.user_name)/\(repo.name ?? "")/issues/\(number)/comments") {
+                    var request = URLRequest(url: url)
+                    request.httpMethod = "POST"
+                    request.addValue("token \(user.access_token)", forHTTPHeaderField: "Authorization")
+                    request.httpBody = json
+                    let task = URLSession.shared.dataTask(with: request){ (data,response,error) in
+                        if let error = error{
+                            print(error.localizedDescription)
+                        }
+                        if let data = data,let data_str = String(data: data, encoding: .utf8){
+                            //print("data : \(data_str)")
+                        }
+                    }
+                    DispatchQueue.main.async {
+                        task.resume()
+                    }
+                }
+            }catch{
+                
+            }
+        }
+    }
+    
+    func getComments(repo : Repository,number:Int,complication: @escaping ([Comments])->()){
+        if let user = self.UserInfo{
+            let header : HTTPHeaders = [.accept("application/vnd.github.v3+json"),.authorization("token "+user.access_token)]
+            let parameters : Parameters = [:]
+            AF.request("https://api.github.com/repos/\(user.user_name)/\(repo.name ?? "")/issues/\(number)/comments", method: .get, parameters: parameters, encoding: URLEncoding.default, headers: header).responseJSON(completionHandler: { (response) in
+                switch response.result{
+                case .success(let value):
+                    do{
+                        let data = try JSONSerialization.data(withJSONObject: value, options: .prettyPrinted)
+                        let comments = try JSONDecoder().decode([Comments].self, from: data)
+                        //print(repos)
+                        complication(comments)
                     }catch let error{
                         print("Fail to change issue to json : \(error.localizedDescription)")
                     }
