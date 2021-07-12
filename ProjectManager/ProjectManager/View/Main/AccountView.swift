@@ -13,7 +13,7 @@ struct AccountView: View {
     @State private var user_name : String = ""
     @State private var alert : error_type? = nil
     enum error_type : Identifiable{
-        case failtoupadate,failtocreate
+        case failtoupadate,failtocreate,alerttodelete
         var id : Int{
             hashValue
         }
@@ -43,11 +43,6 @@ struct AccountView: View {
             }.padding(5)
             Section(header:Label("UserTocken", systemImage: "lock.circle")){
                 VStack(alignment:.leading){
-                    if viewmodel.UserInfo == nil{
-                        Text("Access Token이 존재하지 않습니다.").font(.caption2).opacity(0.8)
-                            .padding(.top,2)
-                        Text("Github>Setting>DeveloperSettings에서 token을 얻을 수 있습니다.").font(.caption2).opacity(0.8)
-                    }
                     HStack{
                         Text("user name :").frame(width:100)
                         TextField("user name", text: $user_name)
@@ -56,6 +51,11 @@ struct AccountView: View {
                         Text("access tokens :").frame(width:100)
                         SecureField("personal access tokens", text: $user_token)
                     }
+                    if viewmodel.UserInfo == nil{
+                        Text("Access Token이 존재하지 않습니다.").font(.caption2).opacity(0.8)
+                            .padding(.top,2)
+                        Text("Github>Setting>DeveloperSettings에서 token을 얻을 수 있습니다.").font(.caption2).opacity(0.8)
+                    }
                     HStack{
                         Button(action:{
                             if viewmodel.UserInfo != nil{
@@ -63,15 +63,23 @@ struct AccountView: View {
                                 if !(viewmodel.updateUser(User(user_name: user_name, access_token: user_token))){
                                     alert = .failtoupadate
                                 }else{
-                                    viewmodel.fetchData()
-                                    setup()
+                                    if check(){
+                                        viewmodel.fetchData()
+                                        setup()
+                                    }else{
+                                        alert = .failtoupadate
+                                    }
                                 }
                             }else{
                                 if !(viewmodel.createUser(User(user_name: user_name, access_token: user_token))){
                                     alert = .failtocreate
                                 }else{
-                                    viewmodel.fetchData()
-                                    setup()
+                                    if check(){
+                                        viewmodel.fetchData()
+                                        setup()
+                                    }else{
+                                        alert = .failtocreate
+                                    }
                                 }
                             }
                         }){
@@ -79,13 +87,7 @@ struct AccountView: View {
                         }
                         if viewmodel.UserInfo != nil{
                             Button(action:{
-                                if !(viewmodel.deleteUser()){
-                                    alert = .failtocreate
-                                }else{
-                                    user_name = ""
-                                    user_token = ""
-                                    viewmodel.fetchData()
-                                }
+                                alert = .alerttodelete
                             }){
                                 Text("삭제")
                             }
@@ -101,6 +103,10 @@ struct AccountView: View {
                 return Alert(title: Text("오류"), message: Text("저장하는데 실패했습니다."))
             case .failtoupadate:
                 return Alert(title: Text("오류"), message: Text("정보를 업데이트하는데 실패했습니다."))
+            case .alerttodelete:
+                return Alert(title: Text("경고"), message: Text("계정을 삭제하면 이와 관련된 자료들이 모두 삭제됩니다."), primaryButton: .default(Text("계정 지우기"), action: {
+                    removeAllData()
+                }), secondaryButton: .cancel())
             }
         }).onAppear{
             setup()
@@ -113,6 +119,38 @@ struct AccountView: View {
         if let user = viewmodel.UserInfo{
             user_token = user.access_token
             user_name = user.user_name
+        }
+    }
+    
+    func removeAllData(){
+        DispatchQueue.main.async {
+            if !(viewmodel.deleteUser()){
+                alert = .failtocreate
+            }else{
+                for research in viewmodel.Researchs{
+                    viewmodel.deleteData(research)
+                }
+                for hashtag in viewmodel.Hashtags{
+                    viewmodel.deleteData(hashtag)
+                }
+                for site in viewmodel.Sites{
+                    viewmodel.deleteData(site)
+                }
+                for repo in viewmodel.Repositories{
+                    viewmodel.deleteData(repo)
+                }
+                user_name = ""
+                user_token = ""
+                viewmodel.fetchData()
+            }
+        }
+    }
+    
+    func check()->Bool{
+        if user_token.isEmpty{
+            return false
+        }else{
+            return true
         }
     }
 }
