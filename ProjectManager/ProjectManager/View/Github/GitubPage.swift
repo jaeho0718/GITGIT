@@ -18,6 +18,10 @@ struct GitubPage: View {
                 Text("GITHUB").bold().foregroundColor(.white)
                     .padding(5).background(Color.black)
                 Text(repository.site ?? "url을 불러올 수 없음.").font(.caption).opacity(0.8)
+            }.onTapGesture {
+                if let url = URL(string: repository.site ?? ""){
+                    NSWorkspace.shared.open(url)
+                }
             }
             Divider()
             VStack(alignment:.leading,spacing:20){
