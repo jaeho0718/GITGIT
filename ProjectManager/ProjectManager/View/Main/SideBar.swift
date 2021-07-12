@@ -13,10 +13,10 @@ struct SideBar: View {
         NavigationView{
             Form{
                 List{
-                    NavigationLink(destination:AccountView()){
+                    NavigationLink(destination: AccountView()){
                         if let user = viewmodel.UserInfo{
                             HStack{
-                                viewmodel.getImgae(user).resizable()
+                                viewmodel.getImage(user).resizable()
                                     .aspectRatio(contentMode: .fill)
                                     .frame(width:15,height:15).clipShape(Circle())
                                     .overlay(Circle().stroke())
@@ -63,7 +63,7 @@ struct SideBar: View {
                 ToolbarItem{
                     Button(action:{
                         viewmodel.fetchData()
-                        viewmodel.setData()
+                        viewmodel.updateRepository()
                     }){
                         Label("refresh", systemImage: "arrow.clockwise")
                     }
