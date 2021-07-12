@@ -12,16 +12,21 @@ struct MemoDetailView: View {
     var research : Research
     @State private var editmemo : Bool = false
     @State private var memo : String = ""
+    @State private var hash_str : String = ""
     @State private var web_site_url : String = ""
     @State private var new_researches : [Research_Info] = []
     var body: some View {
         Form{
             Section(header:Text("Hash")){
-                ScrollView(.horizontal){
-                    HStack{
-                        ForEach(viewmodel.Hashtags.filter({$0.tagID == research.tagID})){ tag in
-                            Button(action:{}){
-                                Text("#\(tag.tag ?? "no tag")")
+                if editmemo{
+                    TextField("hash", text: $hash_str)
+                }else{
+                    ScrollView(.horizontal){
+                        HStack{
+                            ForEach(viewmodel.Hashtags.filter({$0.tagID == research.tagID})){ tag in
+                                Button(action:{}){
+                                    Text("#\(tag.tag ?? "no tag")")
+                                }
                             }
                         }
                     }
@@ -101,6 +106,9 @@ struct MemoDetailView: View {
         }
     }
     func setValue(){
+        for hash in viewmodel.Hashtags.filter({$0.tagID == research.tagID}){
+            hash_str += "#\(hash.tag ?? "")"
+        }
         memo = research.memo ?? ""
     }
     func deleteNewResearch(at indexSet : IndexSet){
@@ -121,6 +129,14 @@ struct MemoDetailView: View {
                     site.getSiteName(completion: { title in
                         viewmodel.saveSite(tagID: research.tagID, name: title, url: site.url_str)
                     })
+                }
+            }
+            for hash in viewmodel.Hashtags.filter({$0.tagID == research.tagID}){
+                viewmodel.deleteData(hash)
+            }
+            for hash in hash_str.components(separatedBy: ["#"]){
+                if hash != ""{
+                    viewmodel.saveHash(tagID: research.tagID, tag: hash)
                 }
             }
             research.memo = memo
