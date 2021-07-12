@@ -6,11 +6,13 @@
 //
 
 import SwiftUI
-
+import MarkdownUI
 struct AddMemoView: View {
     @State private var hash_str : String = ""
     @State private var title : String = ""
     @State private var memo : String = ""
+    @State private var memo_markdown : String = ""
+    @State private var selection : Int = 0
     @State private var web_site_url : String = ""
     @State private var alert : alert_type? = nil
     @State private var researches : [Research_Info] = []
@@ -32,7 +34,12 @@ struct AddMemoView: View {
             }
             Section(header:Text("memo"),footer:Label("MarkDown문법을 지원합니다.", systemImage: "info.circle")){
                 GroupBox{
-                    TextEditor(text: $memo)
+                    TabView(selection:$selection){
+                        TextEditor(text: $memo).frame(minHeight:100,maxHeight: 500).tabItem { Text("Writing") }.tag(0)
+                        Markdown("\(memo_markdown)").frame(minHeight:100,maxHeight: 500).tabItem { Text("Preview") }.tag(1)
+                    }.onChange(of: selection, perform: { value in
+                        memo_markdown = memo
+                    })
                 }
             }.padding(.bottom,5)
             Section(header:Label("자료", systemImage: "books.vertical"),footer:Label("웹사이트에서 Drag and Drop하여 자료를 추가할 수 있습니다. ", systemImage: "info.circle")){
