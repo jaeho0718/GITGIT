@@ -23,7 +23,7 @@ struct AccountView: View {
             Section(header:Label("User Information", systemImage:"person.crop.circle")){
                 HStack{
                     if viewmodel.UserInfo != nil{
-                        viewmodel.getImgae(viewmodel.UserInfo).resizable()
+                        viewmodel.getImage(viewmodel.UserInfo).resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(width:100,height:100).clipShape(Circle())
                             .overlay(Circle().stroke(lineWidth: 3))
