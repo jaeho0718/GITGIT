@@ -60,8 +60,8 @@ struct AddMemoView: View {
                             Image(systemName: "plus")
                         }
                     }
-                }.listStyle(PlainListStyle())
-                .onDrop(of: [.url], delegate: UrlDrop(researches: $researches))
+                }.removeBackground()
+                .onDrop(of: [.url], delegate: UrlDrop(researches: $researches, completion: { _ in}))
             }
             Spacer()
             HStack{
@@ -69,7 +69,8 @@ struct AddMemoView: View {
                     if title.isEmpty{
                         alert = .notitle
                     }else{
-                        viewmodel.saveResearch(name: title, memo: memo, repo_ID: repo_ID, hash: hash_str, sites: researches)
+                        viewmodel.saveResearch(name: title, memo: memo, repo_ID: repo_ID)
+                        viewmodel.fetchData()
                     }
                 }){
                     Text("저장")
@@ -109,24 +110,26 @@ struct AddMemoView_Previews: PreviewProvider {
 struct UrlDrop : DropDelegate{
     @Binding var researches : [Research_Info]
     var edit : Bool = true
+    let completion : (Research_Info)->()
     func performDrop(info: DropInfo) -> Bool {
         if let item = info.itemProviders(for: [.url]).first{
-            if edit{
-                item.loadItem(forTypeIdentifier: "public.url", options: nil, completionHandler: { (urlData,error) in
-                    DispatchQueue.main.async {
-                        if let data = urlData as? Data{
-                            let url = NSURL(absoluteURLWithDataRepresentation: data, relativeTo: nil) as URL
-                            //print(url.absoluteString)
-                            //print(url.absoluteString)
-                            print(url.absoluteURL.absoluteString)
+            item.loadItem(forTypeIdentifier: "public.url", options: nil, completionHandler: { (urlData,error) in
+                DispatchQueue.main.async {
+                    if let data = urlData as? Data{
+                        let url = NSURL(absoluteURLWithDataRepresentation: data, relativeTo: nil) as URL
+                        //print(url.absoluteString)
+                        //print(url.absoluteString)
+                        print(url.absoluteURL.absoluteString)
+                        if edit{
                             researches.append(Research_Info(url_str: url.absoluteString))
+                        }else{
+                            let research_info = Research_Info(url_str: url.absoluteString)
+                            completion(research_info)
                         }
                     }
-                })
-                return true
-            }else{
-                return false
-            }
+                }
+            })
+            return true
         }else{
             return false
         }
