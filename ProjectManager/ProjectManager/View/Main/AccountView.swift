@@ -98,6 +98,7 @@ struct AccountView: View {
             }
             Spacer()
         }.frame(maxWidth:.infinity)
+        .padding()
         .alert(item: $alert, content: { type in
             switch type{
             case .failtocreate:
