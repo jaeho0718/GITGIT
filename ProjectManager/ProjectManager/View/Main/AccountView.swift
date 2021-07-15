@@ -20,10 +20,10 @@ struct AccountView: View {
     }
     var body: some View {
         Form{
-            Section(header:Label("User Information", systemImage:"person.crop.circle")){
-                HStack{
-                    if viewmodel.UserInfo != nil{
-                        viewmodel.getImage(viewmodel.UserInfo).resizable()
+            if viewmodel.UserInfo != nil{
+                Section(header:Label("GitHub ID", systemImage:"person.crop.circle")){
+                    HStack{
+                        viewmodel.getUserImage().resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(width:100,height:100).clipShape(Circle())
                             .overlay(Circle().stroke(lineWidth: 3))
@@ -36,12 +36,12 @@ struct AccountView: View {
                                 Text("사용자 정보를 불러올 수 없습니다.").font(.caption2).opacity(0.8)
                             }
                         }
-                    }else{
-                        Text("사용자 정보를 불러올 수 없습니다.").font(.caption2).opacity(0.8)
                     }
-                }
-            }.padding(5)
-            Section(header:Label("UserTocken", systemImage: "lock.circle")){
+                }.padding(5)
+            }else{
+                Text("GitHub와 연동할 수 없습니다.").font(.caption2).opacity(0.8).padding(5)
+            }
+            Section(header:Label("GitHub ID", systemImage: "lock.circle")){
                 VStack(alignment:.leading){
                     HStack{
                         Text("user name :").frame(width:100)
@@ -58,29 +58,25 @@ struct AccountView: View {
                     }
                     HStack{
                         Button(action:{
-                            if viewmodel.UserInfo != nil{
-                                //not save first time
-                                if !(viewmodel.updateUser(User(user_name: user_name, access_token: user_token))){
-                                    alert = .failtoupadate
-                                }else{
-                                    if check(){
-                                        viewmodel.fetchData()
-                                        setup()
-                                    }else{
+                            if check(){
+                                if viewmodel.UserInfo != nil{
+                                    //not save first time
+                                    if !(viewmodel.updateUser(User(user_name: user_name, access_token: user_token))){
                                         alert = .failtoupadate
+                                    }else{
+                                        setup()
+                                        viewmodel.fetchData()
+                                    }
+                                }else{
+                                    if !(viewmodel.createUser(User(user_name: user_name, access_token: user_token))){
+                                        alert = .failtocreate
+                                    }else{
+                                        setup()
+                                        viewmodel.fetchData()
                                     }
                                 }
                             }else{
-                                if !(viewmodel.createUser(User(user_name: user_name, access_token: user_token))){
-                                    alert = .failtocreate
-                                }else{
-                                    if check(){
-                                        viewmodel.fetchData()
-                                        setup()
-                                    }else{
-                                        alert = .failtocreate
-                                    }
-                                }
+                                alert = .failtocreate
                             }
                         }){
                             Text("저장")
@@ -95,6 +91,11 @@ struct AccountView: View {
                     }.frame(maxWidth:.infinity)
                 }
             }.padding(5)
+            Button(action:{
+                UserDefaults.standard.setValue(false, forKey: "start")
+            }){
+                Text("시작화면 테스트용 초기화")
+            }
             Spacer()
         }.frame(maxWidth:.infinity)
         .alert(item: $alert, content: { type in
