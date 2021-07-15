@@ -10,13 +10,20 @@ import MarkdownUI
 struct MemoDetailView: View {
     @EnvironmentObject var viewmodel : ViewModel
     var research : Research
+    var repo : Repository
+    @State var issue_opt : Issues? = nil
     @State private var editmemo : Bool = false
     @State private var memo : String = ""
+    @State private var memo_markdown : String = ""
+    @State private var selection : Int = 0
     @State private var hash_str : String = ""
     @State private var web_site_url : String = ""
     @State private var new_researches : [Research_Info] = []
     var body: some View {
         Form{
+            if let issue = issue_opt{
+                IssueCell(drag_condition:false,issue: issue, repo: repo)
+            }
             Section(header:Text("Hash")){
                 if editmemo{
                     TextField("hash", text: $hash_str)
@@ -35,7 +42,12 @@ struct MemoDetailView: View {
             Section(header:Text("memo")){
                 GroupBox{
                     if editmemo{
-                        TextEditor(text: $memo)
+                        TabView(selection:$selection){
+                            TextEditor(text: $memo).frame(minHeight:100,maxHeight: 500).tabItem { Text("Writing") }.tag(0)
+                            Markdown("\(memo_markdown)").frame(minHeight:100,maxHeight: 500).tabItem { Text("Preview") }.tag(1)
+                        }.onChange(of: selection, perform: { value in
+                            memo_markdown = memo
+                        })
                     }else{
                         Markdown("\(memo)")
                     }
@@ -69,7 +81,14 @@ struct MemoDetailView: View {
                             }
                         }
                     }
-                }.onDrop(of: [.url], delegate: UrlDrop(researches: $new_researches,edit: editmemo))
+                }.removeBackground()
+                .onDrop(of: [.url], delegate: UrlDrop(researches: $new_researches,edit: true, completion: { research_info in
+                    research_info.getSiteName(completion: {
+                        title in
+                        viewmodel.saveSite(tagID: research.tagID, name: title, url: research_info.url_str)
+                        print("Save Site")
+                    })
+                }))
             }
             if editmemo{
                 HStack{
@@ -108,6 +127,13 @@ struct MemoDetailView: View {
     func setValue(){
         for hash in viewmodel.Hashtags.filter({$0.tagID == research.tagID}){
             hash_str += "#\(hash.tag ?? "")"
+        }
+        if let issue_site = research.issue_url{
+            print(issue_site)
+            let url_seperate = issue_site.components(separatedBy: ["/"])
+            viewmodel.getIssueName("https://api.github.com/repos/\(url_seperate[3])/\(url_seperate[4])/issues/\(url_seperate[6])", complication: { value in
+                issue_opt = value
+            })
         }
         memo = research.memo ?? ""
     }
