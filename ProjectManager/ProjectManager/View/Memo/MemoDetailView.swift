@@ -82,11 +82,11 @@ struct MemoDetailView: View {
                         }
                     }
                 }.removeBackground()
-                .onDrop(of: [.url], delegate: UrlDrop(researches: $new_researches,edit: true, completion: { research_info in
+                .onDrop(of: [.url], delegate: UrlDrop(researches: $new_researches,edit: editmemo, completion: { research_info in
                     research_info.getSiteName(completion: {
                         title in
                         viewmodel.saveSite(tagID: research.tagID, name: title, url: research_info.url_str)
-                        print("Save Site")
+                        viewmodel.fetchData()
                     })
                 }))
             }
@@ -146,6 +146,7 @@ struct MemoDetailView: View {
             let site = researchs[index]
             viewmodel.deleteData(site)
         })
+        viewmodel.fetchData()
     }
     func saveNew(){
         DispatchQueue.main.async {
@@ -166,7 +167,7 @@ struct MemoDetailView: View {
                 }
             }
             research.memo = memo
-            viewmodel.updateData()
+            viewmodel.fetchData()
         }
     }
 }
