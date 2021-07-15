@@ -8,13 +8,17 @@
 import SwiftUI
 
 struct ContentView: View {
+    @EnvironmentObject var viewmodel : ViewModel
     var body: some View {
         SideBar()
+            .sheet(isPresented: .constant(false), content: {
+                StartView()
+            })
     }
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        ContentView().environmentObject(ViewModel())
     }
 }
