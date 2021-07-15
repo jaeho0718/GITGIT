@@ -10,6 +10,13 @@ import SwiftUI
 import Security
 import Alamofire
 
+enum Start : Identifiable{
+    var id: Int{
+        hashValue
+    }
+    case start_first
+}
+
 /// ViewModel for processing data.
 class ViewModel : ObservableObject{
     @Published var Repositories : [Repository] = []
@@ -19,7 +26,6 @@ class ViewModel : ObservableObject{
     @Published var UserInfo : User? = nil
     
     @Published var GithubUserInfo : User_Info? = nil
-    @Published var GithubRepositories : [Repository_Info] = []
     let container: NSPersistentContainer
     
     init() {
@@ -34,6 +40,13 @@ class ViewModel : ObservableObject{
     
     /// Load Model Data to value
     func fetchData(){
+        readUser() //get user data from keychain
+        getUserData() //get user data from github
+        getRepositoryData(completion: {items in
+            self.setData(items)
+            self.updateRepository(items)
+        }) //update and save repository
+        updateData() //update data
         let repository_fetchRequest : NSFetchRequest<Repository> = Repository.fetchRequest()
         let research_fetchRequest : NSFetchRequest<Research> = Research.fetchRequest()
         let hashtag_fetchRequest : NSFetchRequest<Hashtag> = Hashtag.fetchRequest()
@@ -51,10 +64,8 @@ class ViewModel : ObservableObject{
             Hashtags = []
             Sites = []
         }
-        UserInfo = readUser()
-        getUserData(self.UserInfo)
-        getRepositoryData(self.UserInfo)
     }
+    
     
     
     /// Save Repository
@@ -66,12 +77,11 @@ class ViewModel : ObservableObject{
         repotory.name = name
         repotory.language = language
         repotory.descriptions = descriptions
-        updateData()
     }
     
     /// Save Research
     /// sites is weblinks
-    func saveResearch(name : String,memo : String, repo_ID : String,hash:String,sites:[Research_Info],issue_url : String? = nil){
+    func saveResearch(name : String,memo : String, repo_ID : String,issue_url : String? = nil){
         let tagID = UUID()
         let research = Research(context: container.viewContext)
         research.id = repo_ID
@@ -79,23 +89,12 @@ class ViewModel : ObservableObject{
         research.name = name
         research.memo = memo
         research.issue_url = issue_url
-        for site in sites{
-            site.getSiteName(completion: { title in
-                self.saveSite(tagID: tagID, name: title, url: site.url_str)
-            })
-        }
-        for hash in hash.components(separatedBy: ["#"]){
-            if hash != ""{
-                saveHash(tagID: tagID, tag: hash)
-            }
-        }
     }
     
     func saveHash(tagID : UUID?,tag:String){
         let hash = Hashtag(context: container.viewContext)
         hash.tag = tag
         hash.tagID = tagID
-        updateData()
     }
     
     func saveSite(tagID : UUID?,name : String,url : String){
@@ -103,7 +102,6 @@ class ViewModel : ObservableObject{
         site.tagID = tagID
         site.name = name
         site.url = url
-        updateData()
     }
     
     func updateData(){
@@ -119,7 +117,6 @@ class ViewModel : ObservableObject{
     
     func deleteData(_ data : NSManagedObject){
         container.viewContext.delete(data)
-        updateData()
     }
 }
 
@@ -139,7 +136,7 @@ extension ViewModel{
     
     /// Read User  Github Api access token.
     /// If User data not exists, the function returns nil.
-    func readUser()->User?{
+    func readUser(){
         let query : [CFString : Any] = [kSecClass : kSecClassGenericPassword,
                                         kSecAttrService : "ProjectManager",
                                         kSecAttrAccount : "GithubAccessTocken",
@@ -147,10 +144,9 @@ extension ViewModel{
                                         kSecReturnAttributes : true,
                                         kSecReturnData : true]
         var item : CFTypeRef?
-        if SecItemCopyMatching(query as CFDictionary, &item) != errSecSuccess {return nil}
-        guard let existingItem = item as? [CFString : Any],let data = existingItem[kSecAttrGeneric] as? Data,let user = try? JSONDecoder().decode(User.self, from: data) else {return nil}
-        
-        return user
+        if SecItemCopyMatching(query as CFDictionary, &item) != errSecSuccess {return}
+        guard let existingItem = item as? [CFString : Any],let data = existingItem[kSecAttrGeneric] as? Data,let user = try? JSONDecoder().decode(User.self, from: data) else {return}
+        self.UserInfo = user
     }
     
     /// Edit User  Github Api access token.
@@ -172,6 +168,7 @@ extension ViewModel{
         let query : [CFString : Any] = [kSecClass : kSecClassGenericPassword,
                                         kSecAttrService:"ProjectManager",
                                         kSecAttrAccount:"GithubAccessTocken"]
+        self.UserInfo = nil
         return SecItemDelete(query as CFDictionary) == errSecSuccess
     }
 }
@@ -180,8 +177,8 @@ extension ViewModel{
     //Https parsing
     
     /// parsing user_information form GitHub
-    func getUserData(_ info : User?){
-        if let user = info{
+    func getUserData(){
+        if let user = self.UserInfo{
             let header : HTTPHeaders = [.accept("application/vnd.github.v3+json"),.authorization("token "+user.access_token)]
             let parameters : Parameters = [:]
             AF.request("https://api.github.com/user", method: .get, parameters: parameters, encoding: URLEncoding.default, headers: header)
@@ -206,8 +203,8 @@ extension ViewModel{
     
     /// Change imgURL in User structure to Image type.
     /// If this process is faill, return nil.
-    func getImage(_ info : User?)->Image{
-        if let user = info{
+    func getUserImage()->Image{
+        if let user = self.UserInfo{
             guard let url = URL(string: "https://github.com/\(user.user_name).png") else {return Image(systemName: "person.circle")}
             do{
                 let data = try Data(contentsOf: url)
@@ -222,7 +219,7 @@ extension ViewModel{
         }
     }
     
-    func getImage(_ name : String)->Image{
+    func getUserImage(_ name : String)->Image{
         guard let url = URL(string: "https://github.com/\(name).png") else {return Image(systemName: "person.circle")}
         do{
             let data = try Data(contentsOf: url)
@@ -235,8 +232,8 @@ extension ViewModel{
     }
     
     /// parsing repository form GitHub
-    func getRepositoryData(_ info : User?){
-        if let user = info{
+    func getRepositoryData(completion : @escaping ([Repository_Info])->()){
+        if let user = self.UserInfo{
             let header : HTTPHeaders = [.accept("application/vnd.github.v3+json"),.authorization("token "+user.access_token)]
             let parameters : Parameters = [:]
             AF.request("https://api.github.com/search/repositories?q=user:\(user.user_name)", method: .get, parameters: parameters, encoding: URLEncoding.default, headers: header)
@@ -249,20 +246,15 @@ extension ViewModel{
                         //print(str)
                         let repos = try JSONDecoder().decode(Repositories_Info.self, from: data)
                         //print(repos)
-                        self.GithubRepositories = repos.items
+                        completion(repos.items)
                     }catch let error{
                         print(error.localizedDescription)
-                        self.GithubRepositories = []
                     }
                 case .failure(let error):
-                    self.GithubRepositories = []
                     print("fail to load : \(error.errorDescription ?? "")")
                 }
             })
-        }else{
-            self.GithubRepositories = []
         }
-        setData()
     }
     
 }
@@ -270,7 +262,7 @@ extension ViewModel{
 extension ViewModel{
     
     /// Set Model datas using GithubApi
-    func setData(){
+    func setData(_ items : [Repository_Info]){
         /*
          for repotry in self.Repositories{
              if GithubRepositories.contains(where: {$0.node_id == repotry.id}){
@@ -279,26 +271,21 @@ extension ViewModel{
              }
          }
          */
-        DispatchQueue.main.async {
-            for repotry in self.GithubRepositories{
-                if self.Repositories.filter({$0.id == repotry.node_id}).isEmpty{
-                    self.saveRepository(id: repotry.node_id, name: repotry.name, site: repotry.html_url,language: repotry.language,descriptions: repotry.description)
-                }
+        for repotry in items{
+            if self.Repositories.filter({$0.id == repotry.node_id}).isEmpty{
+                self.saveRepository(id: repotry.node_id, name: repotry.name, site: repotry.html_url,language: repotry.language,descriptions: repotry.description)
             }
         }
     }
-    
-    func updateRepository(){
-        DispatchQueue.main.async {
-            for repotry in self.GithubRepositories{
-                if let repo = self.Repositories.first(where: {$0.id == repotry.node_id}){
-                    repo.name = repotry.name
-                    repo.site = repotry.html_url
-                    repo.language = repotry.language
-                    repo.descriptions = repotry.description
-                }
+    /// detect Change of repository
+    func updateRepository(_ items : [Repository_Info]){
+        for repotry in items{
+            if let repo = self.Repositories.first(where: {$0.id == repotry.node_id}){
+                repo.name = repotry.name
+                repo.site = repotry.html_url
+                repo.language = repotry.language
+                repo.descriptions = repotry.description
             }
-            self.updateData()
         }
     }
 }
@@ -321,13 +308,13 @@ extension ViewModel{
                         if let error = error{
                             print(error.localizedDescription)
                         }
-                        if let data = data,let data_str = String(data: data, encoding: .utf8){
-                            //print("data : \(data_str)")
-                        }
+                        /*
+                         if let data = data,let data_str = String(data: data, encoding: .utf8){
+                             //print("data : \(data_str)")
+                         }
+                         */
                     }
-                    DispatchQueue.main.async {
-                        task.resume()
-                    }
+                    task.resume()
                 }
             }catch{
                 
@@ -398,6 +385,30 @@ extension ViewModel{
                         let comments = try JSONDecoder().decode([Comments].self, from: data)
                         //print(repos)
                         complication(comments)
+                    }catch let error{
+                        print("Fail to change issue to json : \(error.localizedDescription)")
+                    }
+                case .failure(let error):
+                    print("Issues get Error : \(error.localizedDescription)")
+                }
+            })
+        }
+    }
+    
+    func getIssueName(_ site : String
+                      ,complication : @escaping (Issues)->()){
+        if let user = self.UserInfo{
+            let header : HTTPHeaders = [.accept("application/vnd.github.v3+json"),.authorization("token "+user.access_token)]
+            let parameters : Parameters = [:]
+            AF.request(site, method: .get, parameters: parameters, encoding: URLEncoding.default, headers: header).responseJSON(completionHandler: { (response) in
+                switch response.result{
+                case .success(let value):
+                    do{
+                        let data = try JSONSerialization.data(withJSONObject: value, options: .prettyPrinted)
+                        //print(String(data: data, encoding: .utf8))
+                        let issues = try JSONDecoder().decode(Issues.self, from: data)
+                        //print(repos)
+                        complication(issues)
                     }catch let error{
                         print("Fail to change issue to json : \(error.localizedDescription)")
                     }
