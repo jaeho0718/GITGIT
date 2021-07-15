@@ -9,6 +9,8 @@ import SwiftUI
 
 struct SideBar: View {
     @EnvironmentObject var viewmodel : ViewModel
+    @SceneStorage("pin") var pin : Bool = true
+    @SceneStorage("repository") var repository : Bool = true
     var body: some View {
         NavigationView{
             Form{
@@ -16,7 +18,7 @@ struct SideBar: View {
                     NavigationLink(destination: AccountView()){
                         if let user = viewmodel.UserInfo{
                             HStack{
-                                viewmodel.getImage(user).resizable()
+                                viewmodel.getUserImage().resizable()
                                     .aspectRatio(contentMode: .fill)
                                     .frame(width:15,height:15).clipShape(Circle())
                                     .overlay(Circle().stroke())
@@ -30,7 +32,7 @@ struct SideBar: View {
                             Label("Account", systemImage: "person.crop.circle")
                         }
                     }
-                    Section(header:Label("pin", systemImage: "pin.circle.fill")){
+                    DisclosureGroup(isExpanded: $pin, content: {
                         if viewmodel.Repositories.isEmpty{
                             Text("Github의 레퍼토리를 불러올 수 없습니다.").font(.caption)
                         }else{
@@ -38,8 +40,10 @@ struct SideBar: View {
                                 RepositoryCell(data: repository)
                             }
                         }
-                    }
-                    Section(header:Label("repositroy", systemImage: "pin.circle")){
+                    }, label: {
+                        Label("pin", systemImage: "pin.circle.fill")
+                    })
+                    DisclosureGroup(isExpanded: $repository, content: {
                         if viewmodel.Repositories.isEmpty{
                             Text("Github의 레퍼토리를 불러올 수 없습니다.").font(.caption)
                         }else{
@@ -47,7 +51,9 @@ struct SideBar: View {
                                 RepositoryCell(data: repository)
                             }
                         }
-                    }
+                    }, label: {
+                        Label("repositroy", systemImage: "doc.fill")
+                    })
                 }
             }
             .listStyle(SidebarListStyle())
@@ -62,8 +68,9 @@ struct SideBar: View {
                 }
                 ToolbarItem{
                     Button(action:{
-                        viewmodel.fetchData()
-                        viewmodel.updateRepository()
+                        DispatchQueue.main.async {
+                            viewmodel.fetchData()
+                        }
                     }){
                         Label("refresh", systemImage: "arrow.clockwise")
                     }

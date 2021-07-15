@@ -29,16 +29,14 @@ struct GitubPage: View {
                 Text(repository.descriptions ?? "description이 없음").font(.subheadline).padding(.bottom,2)
                 //WebView(url: url, user: viewmodel.UserInfo)
                 Section(header:Label("Issue", systemImage: "ant.circle")){
-                    ScrollView(showsIndicators:false){
-                        LazyVStack(alignment:.center){
-                            if add_issue{
-                                AddIssueCell(add_issue: $add_issue, issues: $issues, repository: repository)
-                            }
-                            ForEach(issues){ issue in
-                                IssueCell(issue: issue, repo: repository)
-                            }
+                    List{
+                        if add_issue{
+                            AddIssueCell(add_issue: $add_issue, issues: $issues, repository: repository)
                         }
-                    }
+                        ForEach(issues){ issue in
+                            IssueCell(issue: issue, repo: repository)
+                        }
+                    }.removeBackground()
                 }
                 Spacer()
             }.padding(5)
@@ -65,6 +63,7 @@ struct GitubPage: View {
 }
 
 struct IssueCell : View{
+    var drag_condition : Bool = true
     @EnvironmentObject var viewmodel : ViewModel
     @State private var comment_add : Bool = false
     @State private var comment : String = ""
@@ -80,7 +79,7 @@ struct IssueCell : View{
                 Label("\(issue.title) #\(issue.number)", systemImage: "ant.fill")
                 Divider()
                 HStack(alignment:.center){
-                    viewmodel.getImage(issue.user.login)
+                    viewmodel.getUserImage(issue.user.login)
                         .aspectRatio(contentMode: .fill)
                         .frame(width:20,height:20).clipShape(Circle())
                         .overlay(Circle().stroke(lineWidth: 1))
@@ -104,13 +103,11 @@ struct IssueCell : View{
                     Divider()
                     if !(comments.isEmpty){
                         Section(header:Label("comments", systemImage: "bubble.left.fill")){
-                            ScrollView{
-                                LazyVStack{
-                                    ForEach(comments){ value in
-                                        CommentCell(comment:value)
-                                    }
+                            List{
+                                ForEach(comments){ value in
+                                    CommentCell(comment:value)
                                 }
-                            }
+                            }.removeBackground()
                         }
                     }
                     if comment_add{
@@ -146,12 +143,13 @@ struct IssueCell : View{
                         }
                     }
                 }
-            }.frame(maxWidth:.infinity).onDrag({ return NSItemProvider(object: NSURL(string: issue.html_url)!)})
+            }.frame(maxWidth:.infinity)
         }.onAppear{
             viewmodel.getComments(repo: repo, number: issue.number, complication: { value in
                 comments = value
             })
         }
+        .OnDragable(condition: drag_condition, data: { return NSItemProvider(object: NSURL(string: issue.html_url)!)})
     }
 }
 
@@ -168,7 +166,7 @@ struct AddIssueCell : View{
         GroupBox(label:Label("이슈 등록하기", systemImage: "ant.fill")){
             VStack(alignment:.leading){
                 HStack(alignment:.center){
-                    viewmodel.getImage(viewmodel.UserInfo)
+                    viewmodel.getUserImage()
                         .aspectRatio(contentMode: .fill)
                         .frame(width:20,height:20).clipShape(Circle())
                         .overlay(Circle().stroke(lineWidth: 1))
@@ -213,7 +211,7 @@ struct CommentCell : View{
                 Text(comment.user.login)
                 Text(comment.created_at).font(.caption).opacity(0.5)
             }},
-            icon: { viewmodel.getImage(comment.user.login)
+            icon: { viewmodel.getUserImage(comment.user.login)
                 .aspectRatio(contentMode: .fill)
                 .frame(width:20,height:20).clipShape(Circle())
                 .overlay(Circle().stroke(lineWidth: 1)) }
