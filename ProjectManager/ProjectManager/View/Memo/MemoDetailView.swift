@@ -19,8 +19,9 @@ struct MemoDetailView: View {
     @State private var hash_str : String = ""
     @State private var web_site_url : String = ""
     @State private var new_researches : [Research_Info] = []
+    @State private var sof_search_results : [StackOverFlow_item] = []
     var body: some View {
-        Form{
+        List{
             if let issue = issue_opt{
                 IssueCell(drag_condition:false,issue: issue, repo: repo)
             }
@@ -43,8 +44,8 @@ struct MemoDetailView: View {
                 GroupBox{
                     if editmemo{
                         TabView(selection:$selection){
-                            TextEditor(text: $memo).frame(minHeight:100,maxHeight: 500).tabItem { Text("Writing") }.tag(0)
-                            Markdown("\(memo_markdown)").frame(minHeight:100,maxHeight: 500).tabItem { Text("Preview") }.tag(1)
+                            TextEditor(text: $memo).tabItem { Text("Writing") }.tag(0)
+                            Markdown("\(memo_markdown)").tabItem { Text("Preview") }.tag(1)
                         }.onChange(of: selection, perform: { value in
                             memo_markdown = memo
                         })
@@ -54,7 +55,17 @@ struct MemoDetailView: View {
                 }
             }.padding(.bottom,3)
             Section(header:Label("자료", systemImage: "books.vertical"),footer:Label("웹사이트에서 Drag and Drop하여 자료를 추가할 수 있습니다. ", systemImage: "info.circle")){
-                List{
+                if !(editmemo || sof_search_results.isEmpty){
+                    ScrollView(.horizontal,showsIndicators:false){
+                        HStack{
+                            ForEach(sof_search_results,id:\.question_id){ result in
+                                sofSearchResultView(result).padding(5)
+                            }
+                        }
+                    }
+                    Divider()
+                }
+                Group{
                     ForEach(viewmodel.Sites.filter({$0.tagID == research.tagID})){ site in
                         LinkCell(data: site)
                     }.onDelete(perform: deleteResearch)
@@ -81,7 +92,8 @@ struct MemoDetailView: View {
                             }
                         }
                     }
-                }.removeBackground()
+                    Rectangle().foregroundColor(.clear).frame(minHeight:50)
+                }
                 .onDrop(of: [.url], delegate: UrlDrop(researches: $new_researches,edit: editmemo, completion: { research_info in
                     research_info.getSiteName(completion: {
                         title in
@@ -103,7 +115,7 @@ struct MemoDetailView: View {
                 }.frame(maxWidth:.infinity)
             }
         }
-        .padding()
+        .removeBackground()
         .navigationSubtitle(Text(research.name ?? "타이틀을 불러올 수 없음"))
         .onAppear{
             setValue()
@@ -135,6 +147,9 @@ struct MemoDetailView: View {
                 issue_opt = value
             })
         }
+        sof_searchReseult(search: "SwiftUI", tag: "SwiftUI", completion: { results in
+            self.sof_search_results = results
+        })
         memo = research.memo ?? ""
     }
     func deleteNewResearch(at indexSet : IndexSet){
@@ -172,4 +187,32 @@ struct MemoDetailView: View {
     }
 }
 
+struct sofSearchResultView : View{
+    var data : StackOverFlow_item
+    init(_ data : StackOverFlow_item) {
+        self.data = data
+    }
+    var body: some View{
+        GroupBox(label:Label(data.title, systemImage: "lightbulb")){
+            HStack{
+                if data.is_answered{
+                    Text("Answered").padding(5).foregroundColor(.blue).overlay(Capsule().stroke(lineWidth: 1).foregroundColor(.blue)).padding(2)
+                }else{
+                    Text("NoAnswered").padding(5).foregroundColor(.red).overlay(Capsule().stroke(lineWidth: 1).foregroundColor(.red)).padding(2)
+                }
+                ForEach(data.tags,id:\.self){ tag in
+                    Text("#\(tag)").opacity(0.7)
+                }
+            }
+        }.groupBoxStyle(sofResultStyle())
+        .onTapGesture {
+            if let url = URL(string: data.link){
+                NSWorkspace.shared.open(url)
+            }
+        }
+        .onDrag({
+            return NSItemProvider(object: NSURL(string: data.link)!)
+        })
+    }
+}
 
