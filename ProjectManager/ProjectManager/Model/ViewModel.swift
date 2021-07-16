@@ -81,8 +81,7 @@ class ViewModel : ObservableObject{
     
     /// Save Research
     /// sites is weblinks
-    func saveResearch(name : String,memo : String, repo_ID : String,issue_url : String? = nil){
-        let tagID = UUID()
+    func saveResearch(tagID : UUID = UUID(),name : String,memo : String, repo_ID : String,issue_url : String? = nil){
         let research = Research(context: container.viewContext)
         research.id = repo_ID
         research.tagID = tagID
@@ -332,7 +331,6 @@ extension ViewModel{
                     do{
                         let data = try JSONSerialization.data(withJSONObject: value, options: .prettyPrinted)
                         let repos = try JSONDecoder().decode([Issues].self, from: data)
-                        //print(repos)
                         complication(repos)
                     }catch let error{
                         print("Fail to change issue to json : \(error.localizedDescription)")
