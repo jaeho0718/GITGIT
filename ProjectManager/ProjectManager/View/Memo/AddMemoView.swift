@@ -8,6 +8,7 @@
 import SwiftUI
 import MarkdownUI
 struct AddMemoView: View {
+    @Binding var addMemo : Bool
     @State private var hash_str : String = ""
     @State private var title : String = ""
     @State private var memo : String = ""
@@ -69,8 +70,22 @@ struct AddMemoView: View {
                     if title.isEmpty{
                         alert = .notitle
                     }else{
-                        viewmodel.saveResearch(name: title, memo: memo, repo_ID: repo_ID)
-                        viewmodel.fetchData()
+                        DispatchQueue.main.async {
+                            let tagID = UUID()
+                            viewmodel.saveResearch(tagID:tagID,name: title, memo: memo, repo_ID: repo_ID)
+                            for hash in hash_str.components(separatedBy: ["#"]){
+                                if hash != ""{
+                                    viewmodel.saveHash(tagID: tagID, tag: hash)
+                                }
+                            }
+                            for research in researches{
+                                research.getSiteName(completion: { name in
+                                    viewmodel.saveSite(tagID: tagID, name: name, url: research.url_str)
+                                })
+                            }
+                            viewmodel.fetchData()
+                        }
+                        addMemo = false
                     }
                 }){
                     Text("저장")
@@ -103,7 +118,7 @@ struct AddMemoView: View {
 
 struct AddMemoView_Previews: PreviewProvider {
     static var previews: some View {
-        AddMemoView(repo_ID: "")
+        AddMemoView(addMemo: .constant(true), repo_ID: "")
     }
 }
 
