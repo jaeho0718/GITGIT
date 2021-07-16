@@ -7,6 +7,7 @@
 
 import SwiftUI
 import MarkdownUI
+import Liquid
 struct GitubPage: View {
     @EnvironmentObject var viewmodel : ViewModel
     var repository : Repository
@@ -24,23 +25,21 @@ struct GitubPage: View {
                 }
             }
             Divider()
-            VStack(alignment:.leading,spacing:20){
-                Text(repository.name ?? "").font(.title).bold().padding(.bottom,2)
-                Text(repository.descriptions ?? "description이 없음").font(.subheadline).padding(.bottom,2)
-                //WebView(url: url, user: viewmodel.UserInfo)
-                Section(header:Label("Issue", systemImage: "ant.circle")){
-                    List{
-                        if add_issue{
-                            AddIssueCell(add_issue: $add_issue, issues: $issues, repository: repository)
-                        }
-                        ForEach(issues){ issue in
-                            IssueCell(issue: issue, repo: repository)
-                        }
-                    }.removeBackground()
-                }
-                Spacer()
-            }.padding(5)
-        }.onAppear{
+            if add_issue{
+                AddIssueCell(add_issue: $add_issue, issues: $issues, repository: repository).padding([.leading,.top,.trailing]).transition(.scale)
+            }
+            if issues.isEmpty{
+                
+            }else{
+                List{
+                    ForEach(issues){ issue in
+                        IssueCell(issue: issue, repo: repository)
+                    }
+                }.removeBackground()
+            }
+            Spacer()
+        }
+        .onAppear{
             setValue()
         }
         .toolbar{
@@ -55,9 +54,7 @@ struct GitubPage: View {
     }
     func setValue(){
         viewmodel.getIssues(viewmodel.UserInfo, repo: repository, complication: { value in
-            withAnimation(.spring()){
-                issues = value
-            }
+            issues = value
         })
     }
 }
@@ -74,10 +71,8 @@ struct IssueCell : View{
     var issue : Issues
     var repo : Repository
     var body: some View{
-        GroupBox{
+        GroupBox(label:Label("\(issue.title) #\(issue.number)", systemImage: "ant.fill")){
             VStack(alignment:.leading){
-                Label("\(issue.title) #\(issue.number)", systemImage: "ant.fill")
-                Divider()
                 HStack(alignment:.center){
                     viewmodel.getUserImage(issue.user.login)
                         .aspectRatio(contentMode: .fill)
@@ -90,24 +85,15 @@ struct IssueCell : View{
                         Text("\(issue.created_at)에 만들어짐").font(.caption).opacity(0.5)
                     }
                     Spacer()
-                    Button(action:{show_detail.toggle()
-                        if !show_detail{
-                            comment_add = false
-                        }
-                    }){
-                        Image(systemName: show_detail ? "chevron.up.square" : "chevron.down.square")
-                    }
                 }.padding(.bottom,5)
                 if show_detail{
                     Markdown("\(issue.body)")
                     Divider()
                     if !(comments.isEmpty){
                         Section(header:Label("comments", systemImage: "bubble.left.fill")){
-                            List{
-                                ForEach(comments){ value in
-                                    CommentCell(comment:value)
-                                }
-                            }.removeBackground()
+                            ForEach(comments,id:\.id){ value in
+                                CommentCell(comment:value)
+                            }
                         }
                     }
                     if comment_add{
@@ -126,7 +112,7 @@ struct IssueCell : View{
                             comment_add.toggle()
                         }){
                             Text(comment_add ? "Cancel" : "Add comment")
-                        }
+                        }.buttonStyle(AddButtonStyle())
                         if comment_add{
                             Button(action:{
                                 if !(comment.isEmpty){
@@ -140,11 +126,21 @@ struct IssueCell : View{
                             }){
                                 Text("Comment")
                             }//.opacity(comment.isEmpty ? 0.5 : 1.0)
+                            .buttonStyle(AddButtonStyle())
                         }
                     }
                 }
             }.frame(maxWidth:.infinity)
-        }.onAppear{
+        }.groupBoxStyle(IssueGroupBoxStyle())
+        .onTapGesture {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.5, blendDuration: 0.5)){
+                show_detail.toggle()
+            }
+            if !show_detail{
+                comment_add = false
+            }
+        }
+        .onAppear{
             viewmodel.getComments(repo: repo, number: issue.number, complication: { value in
                 comments = value
             })
@@ -172,7 +168,7 @@ struct AddIssueCell : View{
                         .overlay(Circle().stroke(lineWidth: 1))
                     Text(viewmodel.UserInfo?.user_name ?? "이름을 불러올 수 없음").font(.body)
                     Spacer()
-                }.padding(5).background(Color.blue.opacity(0.5))
+                }.padding(5)
                 TextField("title", text: $title).textFieldStyle(RoundedBorderTextFieldStyle())
                 TabView(selection:$selection){
                     TextEditor(text: $body_str).frame(minHeight:100,maxHeight:350).tabItem { Text("Write") }.tag(0)
@@ -183,6 +179,11 @@ struct AddIssueCell : View{
                 Text("MarkDown문법을 지원합니다.").font(.caption).opacity(0.7)
                 HStack{
                     Spacer()
+                    Button(action:{
+                        add_issue.toggle()
+                    }){
+                        Text("Cancel")
+                    }.buttonStyle(CancelButtonStyle())
                     Button(action:{
                         if !(title.isEmpty){
                             viewmodel.createIssues(repo: repository, title: title, body: body_str)
@@ -196,9 +197,10 @@ struct AddIssueCell : View{
                     }){
                         Text("Submit new issue")
                     }//.opacity(title.isEmpty ? 0.5 : 1.0)
+                    .buttonStyle(AddButtonStyle())
                 }
             }.frame(maxWidth:.infinity)
-        }
+        }.groupBoxStyle(IssueGroupBoxStyle())
     }
 }
 
