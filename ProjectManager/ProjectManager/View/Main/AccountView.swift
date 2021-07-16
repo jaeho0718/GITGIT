@@ -20,8 +20,8 @@ struct AccountView: View {
     }
     var body: some View {
         Form{
-            if viewmodel.UserInfo != nil{
-                Section(header:Label("GitHub ID", systemImage:"person.crop.circle")){
+            GroupBox(label:Label("GitHub Information", systemImage:"person.crop.circle")){
+                if viewmodel.UserInfo != nil{
                     HStack{
                         viewmodel.getUserImage().resizable()
                             .aspectRatio(contentMode: .fill)
@@ -37,11 +37,12 @@ struct AccountView: View {
                             }
                         }
                     }
-                }.padding(5)
-            }else{
-                Text("GitHub와 연동할 수 없습니다.").font(.caption2).opacity(0.8).padding(5)
-            }
-            Section(header:Label("GitHub ID", systemImage: "lock.circle")){
+                }else{
+                    Text("GitHub와 연동할 수 없습니다.").font(.caption2).opacity(0.8).padding(5)
+                }
+            }.groupBoxStyle(IssueGroupBoxStyle())
+            
+            GroupBox(label:Label("GitHub ID", systemImage: "lock.circle")){
                 VStack(alignment:.leading){
                     HStack{
                         Text("user name :").frame(width:100)
@@ -80,24 +81,25 @@ struct AccountView: View {
                             }
                         }){
                             Text("저장")
-                        }
+                        }.buttonStyle(AddButtonStyle())
                         if viewmodel.UserInfo != nil{
                             Button(action:{
                                 alert = .alerttodelete
                             }){
                                 Text("삭제")
-                            }
+                            }.buttonStyle(AddButtonStyle())
                         }
                     }.frame(maxWidth:.infinity)
                 }
-            }.padding(5)
+            }.groupBoxStyle(IssueGroupBoxStyle())
             Button(action:{
                 UserDefaults.standard.setValue(false, forKey: "start")
             }){
                 Text("시작화면 테스트용 초기화")
             }
             Spacer()
-        }.frame(maxWidth:.infinity)
+        }
+        .frame(maxWidth:.infinity)
         .padding()
         .alert(item: $alert, content: { type in
             switch type{

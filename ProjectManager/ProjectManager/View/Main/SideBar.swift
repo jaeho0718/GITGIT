@@ -36,7 +36,7 @@ struct SideBar: View {
                         if viewmodel.Repositories.isEmpty{
                             Text("Github의 레퍼토리를 불러올 수 없습니다.").font(.caption)
                         }else{
-                            ForEach(viewmodel.Repositories.filter({$0.pin})){ repository in
+                            ForEach(viewmodel.Repositories.filter({$0.pin}),id:\.id){ repository in
                                 RepositoryCell(data: repository)
                             }
                         }
@@ -47,14 +47,14 @@ struct SideBar: View {
                         if viewmodel.Repositories.isEmpty{
                             Text("Github의 레퍼토리를 불러올 수 없습니다.").font(.caption)
                         }else{
-                            ForEach(viewmodel.Repositories.filter({!($0.pin)})){ repository in
+                            ForEach(viewmodel.Repositories.filter({!($0.pin)}),id:\.id){ repository in
                                 RepositoryCell(data: repository)
                             }
                         }
                     }, label: {
                         Label("repositroy", systemImage: "doc.fill")
                     })
-                }
+                }.frame(minWidth:300)
             }
             .listStyle(SidebarListStyle())
             .navigationTitle("Title")

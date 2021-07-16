@@ -11,6 +11,7 @@ struct RepositoryView: View {
     var repo_data : Repository
     @EnvironmentObject var viewmodel : ViewModel
     @State private var start : Bool = true
+    @State private var addMemo : Bool = false
     var researchs : [Research]{
         return viewmodel.Researchs.filter({$0.id == repo_data.id})
     }
@@ -25,7 +26,7 @@ struct RepositoryView: View {
                         Research_Cell(research: research, repo: repo_data)
                     }.onDelete(perform: deleteResearchs)
                     if let id = repo_data.id{
-                        NavigationLink(destination:AddMemoView(repo_ID:id)){
+                        NavigationLink(destination:AddMemoView(addMemo: $addMemo, repo_ID:id),isActive:$addMemo){
                             Label("자료 추가하기", systemImage: "plus")
                         }
                     }
@@ -40,13 +41,15 @@ struct RepositoryView: View {
                         })
                     }
                 }))
-                Section(header:Label("HashTag", systemImage: "h.square")){
-                    ForEach(viewmodel.Hashtags,id:\.tagID){ hash in
-                        NavigationLink(destination:HashDetailView(hash_data: hash)){
-                            Text("# \(hash.tag ?? "")").bold().padding([.top,.bottom],5).padding([.leading,.trailing],10).overlay(Capsule().stroke(lineWidth: 1.5)).padding(.leading,3)
-                        }
-                    }
-                }
+                /*
+                 Section(header:Label("HashTag", systemImage: "h.square")){
+                     ForEach(viewmodel.Hashtags){ hash in
+                         NavigationLink(destination:HashDetailView(hash_data: hash)){
+                             Text("# \(hash.tag ?? "")").bold().padding([.top,.bottom],5).padding([.leading,.trailing],10).overlay(Capsule().stroke(lineWidth: 1.5)).padding(.leading,3)
+                         }
+                     }
+                 }
+                 */
             }
         }.navigationTitle(Text("\(repo_data.name ?? "No Name")"))
     }
@@ -97,8 +100,9 @@ struct Research_Cell : View{
     @EnvironmentObject var viewmodel : ViewModel
     var research : Research
     var repo : Repository
+    @State private var show : Bool = false
     var body: some View{
-        NavigationLink(destination: MemoDetailView(research: research, repo: repo)){
+        NavigationLink(destination: MemoDetailView(research: research, repo: repo),isActive: $show){
             HStack{
                 if let _ = research.issue_url{
                     //이슈와 연결되있으면
