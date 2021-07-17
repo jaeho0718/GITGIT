@@ -256,20 +256,47 @@ extension ViewModel{
         }
     }
     
+    func getGitFiles(_ repository : Repository,path : String = "",completion : @escaping ([GitFile])->()){
+        if let user = self.UserInfo{
+            let header : HTTPHeaders = [.accept("application/vnd.github.v3+json"),.authorization("token "+user.access_token)]
+            let parameters : Parameters = [:]
+            AF.request("https://api.github.com/repos/\(user.user_name)/\(repository.name ?? "")/contents/\(path)",method: .get,parameters: parameters,headers: header).responseJSON(completionHandler: { (response) in
+                switch response.result{
+                case .success(let value):
+                    do{
+                        let data = try JSONSerialization.data(withJSONObject: value, options: .prettyPrinted)
+                        let files = try JSONDecoder().decode([GitFile].self, from: data)
+                        print(files)
+                        completion(files)
+                    }catch{
+                        
+                    }
+                case .failure(let error):
+                    print("Error to load gitfiles :\(error.localizedDescription)")
+                }
+            })
+        }
+    }
 }
 
 extension ViewModel{
     
     /// Set Model datas using GithubApi
     func setData(_ items : [Repository_Info]){
-        /*
-         for repotry in self.Repositories{
-             if GithubRepositories.contains(where: {$0.node_id == repotry.id}){
-                 //만약에 깃허브에 없는 레퍼토리가 저장되어있으면 삭제
-                 deleteData(repotry)
+         for repositry in self.Repositories{
+             if !(items.contains(where: {$0.node_id == repositry.id})){
+                let tagID = Researchs.filter({$0.id == repositry.id}).first?.tagID
+                for search in Researchs.filter({$0.id == repositry.id}){
+                    deleteData(search)
+                }
+                for hash in Hashtags.filter({$0.tagID == tagID}){
+                    deleteData(hash)
+                }
+                for site in Sites.filter({$0.tagID == tagID}){
+                    deleteData(site)
+                }
              }
          }
-         */
         for repotry in items{
             if self.Repositories.filter({$0.id == repotry.node_id}).isEmpty{
                 self.saveRepository(id: repotry.node_id, name: repotry.name, site: repotry.html_url,language: repotry.language,descriptions: repotry.description)

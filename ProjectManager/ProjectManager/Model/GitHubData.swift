@@ -259,3 +259,23 @@ struct Comments : Codable,Identifiable{
     var updated_at : String?
     var body : String
 }
+
+struct GitFile : Codable,Hashable{
+    static func == (lhs: GitFile, rhs: GitFile) -> Bool {
+        return lhs.sha == rhs.sha
+    }
+    
+    var name : String
+    var path : String
+    var sha : String
+    var type : String
+    var url : String
+    var git_url : String?
+    var html_url : String?
+    var _links : GitLinks
+}
+
+struct GitLinks : Codable,Hashable{
+    var git : String?
+    var html : String?
+}
