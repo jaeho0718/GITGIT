@@ -24,7 +24,8 @@ struct StackOverFlow_item : Codable{
 
 func sof_searchReseult(search : String,tag : String,completion : @escaping ([StackOverFlow_item])->()){
     let header : HTTPHeaders = [:]
-    let parameters : Parameters = ["order":"desc","sort":"activity","intitle":search,"tagged":tag,"site":"stackoverflow"]
+    let tag_new = tag.replacingOccurrences(of: "#", with: ";")
+    let parameters : Parameters = ["order":"desc","sort":"activity","intitle":search,"tagged":tag_new,"site":"stackoverflow"]
     AF.request("https://api.stackexchange.com/2.3/search",parameters: parameters,encoding: URLEncoding.default,headers: header).responseJSON(completionHandler: { (response) in
         switch response.result{
         case .success(let value):
