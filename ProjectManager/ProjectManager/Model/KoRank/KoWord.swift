@@ -6,35 +6,73 @@
 //
 
 import Foundation
+import NaturalLanguage
 
-public struct Ko_Word : Hashable{
-    public let text : String
-    public var length : Int{
-        text.count
+struct KoWord : Hashable{
+    let word : String
+    var length : Int{
+        return word.count
     }
-    public let originalTextIndex : Int
+    let originalTextIndex: Int
+    let language : textRank_Language
     
-    public init(text : String, originalTextIndex : Int){
-        self.text = Ko_Word.clean(text)
-        self.originalTextIndex = originalTextIndex
-    }
-    
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(text)
+    init() {
+        self.word = ""
+        self.language = .Korean
+        self.originalTextIndex = 0
     }
     
-    static func clean(_ s : String) -> String{
-        return s.lowercased()
+    init(_ word : String,index : Int) {
+        self.word = word
+        self.language = .Korean
+        self.originalTextIndex = index
     }
     
-    /// remove stopwords
-    /// - Parameter Sentence : Original sentence
-    /// - Returns : retrun sentence removed stopwords.
-    static func removeStopWords(from Sentence : String, additionalStopwords : [String] = Stopwords.English)->String{
-        var s = Sentence
-        for stop_words in additionalStopwords{
-            s = s.replacingOccurrences(of: stop_words, with: "")
+    init(_ word : String, language : textRank_Language = .Korean,index : Int) {
+        self.word = word
+        self.language = language
+        self.originalTextIndex = index
+    }
+}
+
+extension KoWord{
+    static func removeStopwords(_ body : String, language : textRank_Language = .Korean)->String{
+        var new_body : String = ""
+        switch language {
+        case .Korean:
+            for stopword in Stopwords.Korean{
+                new_body = new_body.replacingOccurrences(of: stopword, with: "")
+            }
+        case .English:
+            for stopword in Stopwords.English{
+                new_body = new_body.replacingOccurrences(of: stopword, with: "")
+            }
         }
-        return s
+        return new_body
+    }
+    
+    /// Toknization body
+    /// - Parameter body :  put string
+    static func getToken(_ body : String, language : textRank_Language = .Korean)->[String]{
+        let tagger = NLTagger(tagSchemes: [.tokenType])
+        var tokens : [String] = []
+        tagger.string = body
+        tagger.enumerateTags(in: body.startIndex ..< body.endIndex, unit: .word, scheme: .tokenType , options: [.omitPunctuation,.omitWhitespace]){ (tag,range) -> Bool in
+            if tag == .word{
+                let str = String(body[range])
+                switch language{
+                case .English:
+                    if !(Stopwords.English.contains(str)){
+                        tokens.append(str)
+                    }
+                case .Korean:
+                    if !(Stopwords.Korean.contains(str)){
+                        tokens.append(str)
+                    }
+                }
+            }
+            return true
+        }
+        return tokens
     }
 }
