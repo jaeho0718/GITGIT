@@ -18,7 +18,10 @@ struct RepositoryView: View {
     var body: some View {
         NavigationView{
             List{
-                NavigationLink(destination:GitubPage(repository: repo_data),isActive : $start){
+                NavigationLink(destination:GithubCode(repository: repo_data),isActive : $start){
+                    Label("Files", systemImage: "ladybug.fill")
+                }
+                NavigationLink(destination:GitubPage(repository: repo_data)){
                     Label("Issues", systemImage: "ladybug.fill")
                 }
                 Section(header:Label("자료", systemImage: "folder.fill")){
