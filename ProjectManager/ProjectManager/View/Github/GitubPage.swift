@@ -25,19 +25,18 @@ struct GitubPage: View {
                 }
             }
             Divider()
-            if add_issue{
-                AddIssueCell(add_issue: $add_issue, issues: $issues, repository: repository).padding([.leading,.top,.trailing]).transition(.scale)
-            }
-            if issues.isEmpty{
-                
-            }else{
-                List{
+            List{
+                if add_issue{
+                    AddIssueCell(add_issue: $add_issue, issues: $issues, repository: repository)
+                }
+                if issues.isEmpty{
+                    EmptyIssue().frame(maxWidth:.infinity)
+                }else{
                     ForEach(issues){ issue in
                         IssueCell(issue: issue, repo: repository)
                     }
-                }.removeBackground()
+                }
             }
-            Spacer()
         }
         .onAppear{
             setValue()
@@ -53,9 +52,13 @@ struct GitubPage: View {
         }
     }
     func setValue(){
-        viewmodel.getIssues(viewmodel.UserInfo, repo: repository, complication: { value in
-            issues = value
-        })
+        DispatchQueue.main.async {
+            viewmodel.getIssues(viewmodel.UserInfo, repo: repository, complication: { value in
+                withAnimation(.spring()){
+                    issues = value
+                }
+            })
+        }
     }
 }
 
@@ -64,8 +67,6 @@ struct IssueCell : View{
     @EnvironmentObject var viewmodel : ViewModel
     @State private var comment_add : Bool = false
     @State private var comment : String = ""
-    @State private var comment_Markdown : String = ""
-    @State private var selection : Int = 0
     @State private var comments : [Comments] = []
     @State private var show_detail : Bool = false
     var issue : Issues
@@ -97,13 +98,7 @@ struct IssueCell : View{
                         }
                     }
                     if comment_add{
-                        TabView(selection:$selection){
-                            TextEditor(text: $comment).frame(minHeight:100,maxHeight:350).tabItem { Text("Write") }.tag(0)
-                            Markdown("\(comment_Markdown)").frame(minHeight:100,maxHeight:350).tabItem { Text("Preview") }.tag(1)
-                        }.onChange(of: selection, perform: { value in
-                            comment_Markdown = comment
-                        })
-                        Text("MarkDown문법을 지원합니다.").font(.caption).opacity(0.7)
+                        MarkDownEditor(memo: $comment)
                     }
                     HStack{
                         Spacer()
@@ -154,8 +149,6 @@ struct AddIssueCell : View{
     @Binding var add_issue : Bool
     @State private var title : String = ""
     @State private var body_str : String = ""
-    @State private var markdown_str : String = ""
-    @State private var selection : Int = 0
     @Binding var issues : [Issues]
     var repository : Repository
     var body: some View{
@@ -170,13 +163,7 @@ struct AddIssueCell : View{
                     Spacer()
                 }.padding(5)
                 TextField("title", text: $title).textFieldStyle(RoundedBorderTextFieldStyle())
-                TabView(selection:$selection){
-                    TextEditor(text: $body_str).frame(minHeight:100,maxHeight:350).tabItem { Text("Write") }.tag(0)
-                    Markdown("\(markdown_str)").frame(minHeight:100,maxHeight:350).tabItem { Text("Preview") }.tag(1)
-                }.onChange(of: selection, perform: { value in
-                    markdown_str = body_str
-                })
-                Text("MarkDown문법을 지원합니다.").font(.caption).opacity(0.7)
+                MarkDownEditor(memo: $body_str)
                 HStack{
                     Spacer()
                     Button(action:{
@@ -219,6 +206,52 @@ struct CommentCell : View{
                 .overlay(Circle().stroke(lineWidth: 1)) }
         )){
             Markdown("\(comment.body)")
+        }
+    }
+}
+
+struct EmptyIssue : View{
+    @State private var moveRightLeft : Bool = false
+    @State private var moveRightLeft2 : Bool = false
+    @State private var empty : Bool = false
+    var body: some View{
+        GroupBox(label:Label("Issue", systemImage: "ant")){
+            if empty{
+                Text("이슈가 비어있네요.")
+            }else{
+                ZStack{
+                    RoundedRectangle(cornerRadius: 5).frame(width:200,height:15,alignment: .center)
+                        .foregroundColor(Color(.systemGray).opacity(0.3))
+                    RoundedRectangle(cornerRadius: 5).clipShape(Rectangle().offset(x: moveRightLeft ? 120 : -120))
+                        .frame(width:170,height:15,alignment: .leading)
+                        .foregroundColor(Color(.darkGray).opacity(0.5))
+                        .offset(x: moveRightLeft ? 14 : -14)
+                        .animation(Animation.easeInOut(duration: 1).delay(0.2).repeatForever(autoreverses: true))
+                        .onAppear{
+                            moveRightLeft.toggle()
+                        }
+                }
+                ZStack{
+                    RoundedRectangle(cornerRadius: 5).frame(width:400,height:15,alignment: .center)
+                        .foregroundColor(Color(.systemGray).opacity(0.3))
+                    RoundedRectangle(cornerRadius: 5).clipShape(Rectangle().offset(x: moveRightLeft2 ? 240 : -240))
+                        .frame(width:340,height:15,alignment: .leading)
+                        .foregroundColor(Color(.darkGray).opacity(0.5))
+                        .offset(x: moveRightLeft2 ? 28 : -28)
+                        .animation(Animation.easeInOut(duration: 1).delay(0.2).repeatForever(autoreverses: true))
+                        .onAppear{
+                            moveRightLeft2.toggle()
+                        }
+                }
+            }
+        }.groupBoxStyle(IssueGroupBoxStyle())
+        .onAppear{
+            let time = DispatchTime.now() + .seconds(5)
+            DispatchQueue.main.asyncAfter(deadline: time, execute: {
+                withAnimation(.spring()){
+                    self.empty = true
+                }
+            })
         }
     }
 }
