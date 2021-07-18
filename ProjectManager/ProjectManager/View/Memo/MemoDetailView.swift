@@ -14,94 +14,96 @@ struct MemoDetailView: View {
     @State var issue_opt : Issues? = nil
     @State private var editmemo : Bool = false
     @State private var memo : String = ""
-    @State private var memo_markdown : String = ""
-    @State private var selection : Int = 0
     @State private var hash_str : String = ""
     @State private var web_site_url : String = ""
     @State private var new_researches : [Research_Info] = []
     @State private var sof_search_results : [StackOverFlow_item] = []
+    var keyword : String{
+        let ko_rank = KoRank(memo,language: .Korean)
+        let result = ko_rank.run()
+        return result.keyword
+    }
     var body: some View {
         List{
-            if let issue = issue_opt{
-                IssueCell(drag_condition:false,issue: issue, repo: repo)
-            }
-            Section(header:Text("Hash")){
-                if editmemo{
+            if editmemo{
+                GroupBox(label: Text("Hash")){
                     TextField("hash", text: $hash_str)
+                }
+            }else{
+                ScrollView(.horizontal){
+                    HStack{
+                        Text("# \(keyword)")
+                            .foregroundColor(.white)
+                            .padding([.leading,.trailing]).padding([.top,.bottom],5).background(Color.black)
+                        ForEach(viewmodel.Hashtags.filter({$0.tagID == research.tagID})){ tag in
+                            Text("# \(tag.tag ?? "no tag")")
+                                .foregroundColor(.white)
+                                .padding([.leading,.trailing]).padding([.top,.bottom],5).background(Color.black)
+                        }
+                    }
+                }
+            }
+            if research.issue_url != nil{
+                if let issue = issue_opt{
+                    IssueCell(drag_condition:false,issue: issue, repo: repo)
                 }else{
-                    ScrollView(.horizontal){
-                        HStack{
-                            ForEach(viewmodel.Hashtags.filter({$0.tagID == research.tagID})){ tag in
-                                Button(action:{}){
-                                    Text("#\(tag.tag ?? "no tag")")
-                                }
-                            }
+                    EmptyIssue()
+                }
+            }
+            GroupBox(label:Text("memo")){
+                if editmemo{
+                    MarkDownEditor(memo: $memo)
+                }else{
+                    Markdown("\(memo)")
+                }
+            }.groupBoxStyle(IssueGroupBoxStyle())
+            if !(editmemo || sof_search_results.isEmpty){
+                ScrollView(.horizontal,showsIndicators:false){
+                    HStack{
+                        ForEach(sof_search_results,id:\.question_id){ result in
+                            sofSearchResultView(result)
                         }
                     }
                 }
             }
-            Section(header:Text("memo")){
-                GroupBox{
-                    if editmemo{
-                        TabView(selection:$selection){
-                            TextEditor(text: $memo).tabItem { Text("Writing") }.tag(0)
-                            Markdown("\(memo_markdown)").tabItem { Text("Preview") }.tag(1)
-                        }.onChange(of: selection, perform: { value in
-                            memo_markdown = memo
+            Group{
+                ForEach(viewmodel.Sites.filter({$0.tagID == research.tagID})){ site in
+                    LinkCell(data: site)
+                }.onDelete(perform: deleteResearch)
+                ForEach(new_researches){ site in
+                    URLCell(research: site)
+                        .onTapGesture {
+                            if let url = URL(string: site.url_str){
+                                NSWorkspace.shared.open(url)
+                            }
+                        }
+                }.onDelete(perform: deleteNewResearch)
+                if editmemo{
+                    HStack{
+                        TextField("url", text: $web_site_url,onCommit:{
+                            addResearch(web_site_url)
+                            web_site_url = ""
                         })
-                    }else{
-                        Markdown("\(memo)")
-                    }
-                }
-            }.padding(.bottom,3)
-            Section(header:Label("자료", systemImage: "books.vertical"),footer:Label("웹사이트에서 Drag and Drop하여 자료를 추가할 수 있습니다. ", systemImage: "info.circle")){
-                if !(editmemo || sof_search_results.isEmpty){
-                    ScrollView(.horizontal,showsIndicators:false){
-                        HStack{
-                            ForEach(sof_search_results,id:\.question_id){ result in
-                                sofSearchResultView(result).padding(5)
-                            }
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                        Button(action:{
+                            addResearch(web_site_url)
+                            web_site_url = ""
+                        }){
+                            Image(systemName: "plus")
                         }
                     }
-                    Divider()
                 }
-                Group{
-                    ForEach(viewmodel.Sites.filter({$0.tagID == research.tagID})){ site in
-                        LinkCell(data: site)
-                    }.onDelete(perform: deleteResearch)
-                    ForEach(new_researches){ site in
-                        URLCell(research: site)
-                            .onTapGesture {
-                                if let url = URL(string: site.url_str){
-                                    NSWorkspace.shared.open(url)
-                                }
-                            }
-                    }.onDelete(perform: deleteNewResearch)
-                    if editmemo{
-                        HStack{
-                            TextField("url", text: $web_site_url,onCommit:{
-                                addResearch(web_site_url)
-                                web_site_url = ""
-                            })
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                            Button(action:{
-                                addResearch(web_site_url)
-                                web_site_url = ""
-                            }){
-                                Image(systemName: "plus")
-                            }
-                        }
-                    }
-                    Rectangle().foregroundColor(.clear).frame(minHeight:50)
+                if viewmodel.Sites.filter({$0.tagID == research.tagID}).isEmpty{
+                    Rectangle().foregroundColor(.clear).frame(height:100)
                 }
-                .onDrop(of: [.url], delegate: UrlDrop(researches: $new_researches,edit: editmemo, completion: { research_info in
-                    research_info.getSiteName(completion: {
-                        title in
-                        viewmodel.saveSite(tagID: research.tagID, name: title, url: research_info.url_str)
-                        viewmodel.fetchData()
-                    })
-                }))
             }
+            .onDrop(of: [.url], delegate: UrlDrop(researches: $new_researches,edit: editmemo, completion: { research_info in
+                research_info.getSiteName(completion: {
+                    title in
+                    viewmodel.saveSite(tagID: research.tagID, name: title, url: research_info.url_str)
+                    viewmodel.fetchData()
+                })
+            }))
             if editmemo{
                 HStack{
                     Button(action:{
@@ -115,7 +117,6 @@ struct MemoDetailView: View {
                 }.frame(maxWidth:.infinity)
             }
         }
-        .removeBackground()
         .navigationSubtitle(Text(research.name ?? "타이틀을 불러올 수 없음"))
         .onAppear{
             setValue()
@@ -141,13 +142,12 @@ struct MemoDetailView: View {
             hash_str += "#\(hash.tag ?? "")"
         }
         if let issue_site = research.issue_url{
-            print(issue_site)
             let url_seperate = issue_site.components(separatedBy: ["/"])
             viewmodel.getIssueName("https://api.github.com/repos/\(url_seperate[3])/\(url_seperate[4])/issues/\(url_seperate[6])", complication: { value in
                 issue_opt = value
             })
         }
-        sof_searchReseult(search: "SwiftUI", tag: "SwiftUI", completion: { results in
+        sof_searchReseult(search: "", tag: hash_str, completion: { results in
             self.sof_search_results = results
         })
         memo = research.memo ?? ""
