@@ -19,3 +19,18 @@ struct CancelButtonStyle : ButtonStyle{
         configuration.label.padding([.leading,.trailing]).padding([.top,.bottom],5).foregroundColor(.red).background(VisualEffectView(material: .contentBackground, blendingMode: .withinWindow)).clipShape(RoundedRectangle(cornerRadius: 10))
     }
 }
+
+struct StartButtonStyle : ButtonStyle{
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.padding([.leading,.trailing]).padding([.top,.bottom],5).background(VisualEffectView(material: .fullScreenUI, blendingMode: .withinWindow)).clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+}
+
+struct PinButtonStyle : ButtonStyle{
+    var pin : Bool
+    func makeBody(configuration: Configuration) -> some View {
+        ZStack{
+            Image(systemName: pin ? "pin.fill" : "pin")
+        }
+    }
+}

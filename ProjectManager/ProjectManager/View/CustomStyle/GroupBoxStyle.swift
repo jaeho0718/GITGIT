@@ -49,3 +49,8 @@ struct VisualEffectView: NSViewRepresentable{
     }
 }
 
+struct LinkGroupBoxStyle : GroupBoxStyle{
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.content.padding(10).background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow)).clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+}
