@@ -11,7 +11,7 @@ struct RepositoryView: View {
     var repo_data : Repository
     @EnvironmentObject var viewmodel : ViewModel
     @State private var start : Bool = true
-    @State private var addMemo : Bool = false
+    @State var addMemo : Bool = false
     var researchs : [Research]{
         return viewmodel.Researchs.filter({$0.id == repo_data.id})
     }
@@ -24,19 +24,20 @@ struct RepositoryView: View {
                 NavigationLink(destination:GitubPage(repository: repo_data)){
                     Label("Issues", systemImage: "ladybug.fill")
                 }
+                Divider()
                 Section(header:Label("자료", systemImage: "folder.fill")){
                     ForEach(researchs,id:\.tagID){ research in
                         Research_Cell(research: research, repo: repo_data)
                     }.onDelete(perform: deleteResearchs)
-                    if let id = repo_data.id{
-                        NavigationLink(destination:AddMemoView(addMemo: $addMemo, repo_ID:id),isActive:$addMemo){
+                    if let id =  repo_data.id{
+                        NavigationLink(destination:AddMemoView(addMemo: $addMemo, repo_ID: id)){
                             Label("자료 추가하기", systemImage: "plus")
                         }
                     }
                 }.onDrop(of: [.url], delegate: IssueDrop(completion: {
                     url in
                     if url.contains("github.com") && url.contains("\(repo_data.name ?? "")") && url.contains("issues"){
-                        //데이터 유형이 일치하지 않음
+                        //데이터 유형이 일치할 때
                         let url_seperate = url.components(separatedBy: ["/"])
                         viewmodel.getIssueName("https://api.github.com/repos/\(url_seperate[3])/\(url_seperate[4])/issues/\(url_seperate[6])", complication: { value in
                             viewmodel.saveResearch(name: "Issue #\(value.number) : \(value.title)", memo: "\(value.body)", repo_ID: repo_data.id ?? "",issue_url: value.html_url)
@@ -55,6 +56,9 @@ struct RepositoryView: View {
                  */
             }
         }.navigationTitle(Text("\(repo_data.name ?? "No Name")"))
+        .onAppear{
+            viewmodel.nowRepository = repo_data
+        }
     }
     func deleteResearchs(at indexOffset : IndexSet){
         DispatchQueue.main.async {
