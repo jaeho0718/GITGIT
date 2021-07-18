@@ -24,13 +24,15 @@ struct HashDetailView: View {
 }
 
 struct LinkCell : View{
+    @EnvironmentObject var viewmodel : ViewModel
     var data : Site
     var body: some View{
         GroupBox{
             HStack{
                 Text(data.name ?? "이름을 불러올 수 없음")
             }.frame(maxWidth:.infinity)
-        }.onTapGesture {
+        }.groupBoxStyle(LinkGroupBoxStyle())
+        .onTapGesture {
             if let url = URL(string: data.url ?? ""){
                 NSWorkspace.shared.open(url)
             }
