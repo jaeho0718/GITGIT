@@ -24,7 +24,7 @@ class ViewModel : ObservableObject{
     @Published var Hashtags : [Hashtag] = []
     @Published var Sites : [Site] = []
     @Published var UserInfo : User? = nil
-    
+    @Published var nowRepository : Repository?
     @Published var GithubUserInfo : User_Info? = nil
     let container: NSPersistentContainer
     
@@ -107,7 +107,6 @@ class ViewModel : ObservableObject{
         if container.viewContext.hasChanges{
             do{
                 try container.viewContext.save()
-                fetchData()
             }catch{
                 container.viewContext.redo()
             }
@@ -266,15 +265,28 @@ extension ViewModel{
                     do{
                         let data = try JSONSerialization.data(withJSONObject: value, options: .prettyPrinted)
                         let files = try JSONDecoder().decode([GitFile].self, from: data)
-                        print(files)
                         completion(files)
                     }catch{
-                        
+                        completion([])
                     }
                 case .failure(let error):
+                    completion([])
                     print("Error to load gitfiles :\(error.localizedDescription)")
                 }
             })
+        }
+    }
+    
+    func getGitCode(_ repository : Repository,path : String = "",completion : @escaping (String)->()){
+        if let user = self.UserInfo{
+            let header : HTTPHeaders = [.accept("application/vnd.github.VERSION.html"),.authorization("token "+user.access_token)]
+            let parameters : Parameters = [:]
+            AF.request("https://api.github.com/repos/\(user.user_name)/\(repository.name ?? "")/contents/\(path)",method: .get,parameters: parameters,headers: header)
+                .responseData{ data in
+                    if let value = data.data{
+                        completion(String(data: value, encoding: .utf8) ?? "")
+                    }
+                }
         }
     }
 }
@@ -285,15 +297,14 @@ extension ViewModel{
     func setData(_ items : [Repository_Info]){
          for repositry in self.Repositories{
              if !(items.contains(where: {$0.node_id == repositry.id})){
-                let tagID = Researchs.filter({$0.id == repositry.id}).first?.tagID
                 for search in Researchs.filter({$0.id == repositry.id}){
                     deleteData(search)
-                }
-                for hash in Hashtags.filter({$0.tagID == tagID}){
-                    deleteData(hash)
-                }
-                for site in Sites.filter({$0.tagID == tagID}){
-                    deleteData(site)
+                    for hash in Hashtags.filter({$0.tagID == search.tagID}){
+                        deleteData(hash)
+                    }
+                    for site in Sites.filter({$0.tagID == search.tagID}){
+                        deleteData(site)
+                    }
                 }
              }
          }

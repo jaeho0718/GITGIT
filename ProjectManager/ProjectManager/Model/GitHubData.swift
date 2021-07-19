@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 import Security
 
 /// To call Github Api, need user GithubAccessToken
@@ -261,10 +262,6 @@ struct Comments : Codable,Identifiable{
 }
 
 struct GitFile : Codable,Hashable{
-    static func == (lhs: GitFile, rhs: GitFile) -> Bool {
-        return lhs.sha == rhs.sha
-    }
-    
     var name : String
     var path : String
     var sha : String
@@ -273,6 +270,17 @@ struct GitFile : Codable,Hashable{
     var git_url : String?
     var html_url : String?
     var _links : GitLinks
+    
+    func getIcon()->Image{
+        switch type{
+        case "file":
+            return Image(systemName: "doc.text")
+        case "dir":
+            return Image(systemName: "folder.fill")
+        default:
+            return Image(systemName: "questionmark")
+        }
+    }
 }
 
 struct GitLinks : Codable,Hashable{
