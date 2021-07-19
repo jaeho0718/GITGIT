@@ -274,9 +274,9 @@ struct GitFile : Codable,Hashable{
     func getIcon()->Image{
         switch type{
         case "file":
-            return Image(systemName: "doc.text")
+            return Image("coding")
         case "dir":
-            return Image(systemName: "folder.fill")
+            return Image("folder")
         default:
             return Image(systemName: "questionmark")
         }

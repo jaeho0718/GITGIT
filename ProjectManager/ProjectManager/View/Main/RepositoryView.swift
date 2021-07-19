@@ -19,10 +19,18 @@ struct RepositoryView: View {
         NavigationView{
             List{
                 NavigationLink(destination:GithubCode(repository: repo_data),isActive : $start){
-                    Label("Files", systemImage: "ladybug.fill")
+                    Label(
+                        title: { Text("Files") },
+                        icon: { Image("folder").resizable().aspectRatio(contentMode: .fit).frame(width:15,height:15)}
+                    )
                 }
                 NavigationLink(destination:GitubPage(repository: repo_data)){
-                    Label("Issues", systemImage: "ladybug.fill")
+                    Label(
+                        title: { Text("Issues") },
+                        icon: { Image("bug").resizable().aspectRatio(contentMode: .fit).frame(width:15,height:15)
+                            
+                        }
+                    )
                 }
                 Divider()
                 Section(header:Label("자료", systemImage: "folder.fill")){
