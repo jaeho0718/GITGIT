@@ -88,24 +88,21 @@ struct SideBar_Previews: PreviewProvider {
 
 struct RepositoryCell : View{
     var data : Repository
-    @State private var pin : Bool = false
     @EnvironmentObject var viewmodel : ViewModel
     var body: some View{
         HStack{
-            Toggle("", isOn: $pin).toggleStyle(CheckBoxStyle(true_img: "pin.fill", false_img: "pin")).onChange(of: pin, perform: { value in
-                data.pin = value
-                viewmodel.updateData()
-            })
-            
+            Button(action:{
+                data.pin.toggle()
+                viewmodel.fetchData()
+            }){
+                
+            }.buttonStyle(PinButtonStyle(pin: data.pin))
             VStack(alignment:.leading,spacing:2){
                 NavigationLink(destination:RepositoryView(repo_data : data)){
                     Text(data.name ?? "No name").bold()
                 }
                 Text(data.site ?? "No site").font(.caption).opacity(0.7)
             }
-        }
-        .onAppear{
-            pin = data.pin
         }
     }
 }
