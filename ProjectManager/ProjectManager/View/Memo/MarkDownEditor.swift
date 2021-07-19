@@ -13,7 +13,7 @@ struct MarkDownEditor: View {
     @State private var nowpositoin : Int = 0
     var body: some View {
         GroupBox{
-            ScrollView(.horizontal){
+            ScrollView(.horizontal,showsIndicators:false){
                 HStack(alignment:.center){
                     Label("도구", systemImage: "keyboard")
                     Button(action:{
