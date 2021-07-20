@@ -33,14 +33,23 @@ struct RepositoryView: View {
                     )
                 }
                 Divider()
-                Section(header:Label("자료", systemImage: "folder.fill")){
+                Section(header:
+                    Label(title: {
+                        HStack{
+                            Text("자료")
+                            Spacer()
+                        }
+                    }, icon: {
+                            Image(systemName: "folder.fill")
+                    })
+                ){
                     ForEach(researchs,id:\.tagID){ research in
                         Research_Cell(research: research, repo: repo_data)
                     }.onDelete(perform: deleteResearchs)
                     if let id =  repo_data.id{
                         NavigationLink(destination:AddMemoView(addMemo: $addMemo, repo_ID: id)){
-                            Label("자료 추가하기", systemImage: "plus")
-                        }
+                            Label("자료 추가", systemImage: "plus.circle")
+                        }.accentColor(.secondary)
                     }
                 }.onDrop(of: [.url], delegate: IssueDrop(completion: {
                     url in
@@ -62,6 +71,13 @@ struct RepositoryView: View {
                      }
                  }
                  */
+                Divider()
+                Section(header:Label(
+                    title: { Text("CODE REVIEW") },
+                    icon: { Image("codefile").resizable().aspectRatio(contentMode: .fit).frame(width:15,height:15)}
+                )){
+                    
+                }
             }
         }.navigationTitle(Text("\(repo_data.name ?? "No Name")"))
         .onAppear{
@@ -116,6 +132,8 @@ struct Research_Cell : View{
     var research : Research
     var repo : Repository
     @State private var show : Bool = false
+    @State private var edit : Bool = false
+    @State private var editname : String = ""
     var body: some View{
         NavigationLink(destination: MemoDetailView(research: research, repo: repo),isActive: $show){
             HStack{
@@ -125,13 +143,32 @@ struct Research_Cell : View{
                 }else{
                     Image(systemName: "doc.plaintext.fill")
                 }
-                Text(research.name ?? "...")
+                if edit{
+                    TextField("", text: $editname,onCommit:{
+                        research.name = editname
+                        DispatchQueue.main.async {
+                            viewmodel.fetchData()
+                        }
+                        edit = false
+                    })
+                }else{
+                    Text(research.name ?? "...")
+                }
             }
         }.contextMenu(menuItems: {
             Button(action:{deleteResearchs(research: research)}){
                 Text("Delete")
             }
+            Button(action:{
+                edit = true
+            }){
+                Text("Edit name")
+            }
         })
+        .onAppear{
+            editname = research.name ?? ""
+        }
+        
     }
     func deleteResearchs(research : Research){
         DispatchQueue.main.async {
