@@ -50,13 +50,18 @@ struct GitubPage: View {
                 }
             }
         }
+        .touchBar{
+            Button(action:{
+                add_issue.toggle()
+            }){
+                Label(add_issue ? "Cancel" : "NewIssue", systemImage: add_issue ? "xmark.square" : "plus.app")
+            }
+        }
     }
     func setValue(){
         DispatchQueue.main.async {
             viewmodel.getIssues(viewmodel.UserInfo, repo: repository, complication: { value in
-                withAnimation(.spring()){
-                    issues = value
-                }
+                issues = value
             })
         }
     }
