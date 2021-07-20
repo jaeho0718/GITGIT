@@ -6,25 +6,38 @@
 //
 
 import SwiftUI
-import WaterfallGrid
+import CodeMirror_SwiftUI
 
 struct GithubCode: View {
     @EnvironmentObject var viewmodel : ViewModel
     var repository : Repository
     @State private var nowFile : [GitFile] = []
     @State private var file_order : [GitFile] = []
+    var showCode : Bool {
+        if nowFile.isEmpty{
+            if let _ = file_order.last{
+                return true
+            }else{
+                return false
+            }
+        }else{
+            return false
+        }
+    }
     var body: some View {
         Form{
-            List{
-                if nowFile.isEmpty{
-                    if let file = file_order.last{
-                        GitFileCode(gitfile:file,repository:repository)
-                    }else{
+            if showCode{
+                if let file = file_order.last{
+                    GitFileCode(gitfile:file,repository:repository)
+                }
+            }else{
+                List{
+                    if nowFile.isEmpty{
                         EmptyGitFile()
-                    }
-                }else{
-                    ForEach(nowFile,id:\.sha){ file in
-                        GitFileView(nowFile: $nowFile, file_order: $file_order, repository: repository, file: file)
+                    }else{
+                        ForEach(nowFile,id:\.sha){ file in
+                            GitFileView(nowFile: $nowFile, file_order: $file_order, repository: repository, file: file)
+                        }
                     }
                 }
             }
@@ -33,6 +46,9 @@ struct GithubCode: View {
             viewmodel.getGitFiles(repository, completion: { value in
                 nowFile = value
             })
+        }
+        .touchBar{
+            GitFileDirectory(repository: repository, nowFile: $nowFile, file_order: $file_order)
         }
     }
 }
@@ -51,6 +67,11 @@ struct GitFileView : View{
                 Spacer()
             }
         }.groupBoxStyle(LinkGroupBoxStyle())
+        .OnDragable(condition: file.type == "file", data: {
+            guard let url = URL(string: file.path) else {return NSItemProvider()}
+            guard let provider = NSItemProvider(contentsOf: url) else {return NSItemProvider()}
+            return provider
+        })
         .onTapGesture {
             viewmodel.getGitFiles(repository,path: file.path, completion: { value in
                 file_order.append(file)
@@ -66,7 +87,7 @@ struct GitFileDirectory : View{
     @Binding var nowFile : [GitFile]
     @Binding var file_order : [GitFile]
     var body: some View{
-        ScrollView(.horizontal){
+        ScrollView(.horizontal,showsIndicators:false){
             HStack{
                 Text(repository.name ?? "")
                     .foregroundColor(.white)
@@ -102,17 +123,46 @@ struct GitFileDirectory : View{
 struct GitFileCode : View{
     @EnvironmentObject var viewmodel : ViewModel
     @State private var code : String = ""
+    @SceneStorage("font_size") var fontSize : Int = 12
+    //@State private var fontSize : Int = 12
+    @Environment(\.colorScheme) var colorScheme
     var gitfile : GitFile
     var repository : Repository
     var body: some View{
-        GroupBox(label:Label(gitfile.name, systemImage: "chart.bar.doc.horizontal")){
-            CodeWebView(text: code).frame(minHeight:500,maxHeight:.infinity)
-        }.groupBoxStyle(IssueGroupBoxStyle())
+        VStack(spacing:1){
+            GroupBox{
+                HStack(alignment:.center){
+                    gitfile.getIcon().resizable().aspectRatio(contentMode: .fit).frame(width:17,height:17)
+                    Text(gitfile.name).font(.title2).bold()
+                    Spacer()
+                    Button(action:{
+                        fontSize -= 1
+                    }){
+                        Text("-")
+                    }.keyboardShortcut(KeyEquivalent("-"), modifiers: .command)
+                    Text("\(fontSize)").padding(5)
+                    Button(action:{
+                        fontSize += 1
+                    }){
+                        Text("+")
+                    }.keyboardShortcut(KeyEquivalent("+"), modifiers: .command)
+                }.padding(2)
+            }.groupBoxStyle(LinkGroupBoxStyle())
+            CodeView(theme: colorScheme == .dark ? .irBlack : .irWhite,code: $code, mode: FileType.getType(gitfile.name).code_mode.mode(), fontSize: fontSize, showInvisibleCharacters: true, lineWrapping: true)
+        }
         .onAppear{
             viewmodel.getGitCode(repository,path: "\(gitfile.path)", completion: { str in
-                code = str
+                if let html = try? NSAttributedString(data:  Data(str.utf8), options: [.documentType : NSAttributedString.DocumentType.html], documentAttributes: nil){
+                    code = html.string
+                }
             })
+            print(gitfile)
         }
+        .OnDragable(condition: gitfile.type == "file", data: {
+            guard let url = URL(string: gitfile.path) else {return NSItemProvider()}
+            guard let provider = NSItemProvider(contentsOf: url) else {return NSItemProvider()}
+            return provider
+        })
     }
 }
 
