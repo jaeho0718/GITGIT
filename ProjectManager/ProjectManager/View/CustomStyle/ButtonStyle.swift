@@ -30,7 +30,13 @@ struct PinButtonStyle : ButtonStyle{
     var pin : Bool
     func makeBody(configuration: Configuration) -> some View {
         ZStack{
-            Image(systemName: pin ? "pin.fill" : "pin")
+            Image(systemName: pin ? "star.fill" : "star")
         }
+    }
+}
+
+struct RemoveBackgroundStyle : ButtonStyle{
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
     }
 }

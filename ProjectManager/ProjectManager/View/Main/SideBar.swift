@@ -17,15 +17,15 @@ struct SideBar: View {
                 List{
                     NavigationLink(destination: AccountView()){
                         if let user = viewmodel.UserInfo{
-                            HStack{
+                            HStack(alignment:.center){
                                 viewmodel.getUserImage().resizable()
                                     .aspectRatio(contentMode: .fill)
                                     .frame(width:15,height:15).clipShape(Circle())
                                     .overlay(Circle().stroke())
                                 if let user_info = viewmodel.GithubUserInfo{
-                                    Text(user_info.name)
+                                    Text(user_info.name).bold()
                                 }else{
-                                    Text(user.user_name)
+                                    Text(user.user_name).bold()
                                 }
                             }
                         }else{
@@ -41,8 +41,8 @@ struct SideBar: View {
                             }
                         }
                     }, label: {
-                        Label("pin", systemImage: "pin.circle.fill")
-                    })
+                        Label("Favorite", systemImage: "star.fill")
+                    }).accentColor(.gray)
                     DisclosureGroup(isExpanded: $repository, content: {
                         if viewmodel.Repositories.isEmpty{
                             Text("Github의 레퍼토리를 불러올 수 없습니다.").font(.caption)
@@ -52,10 +52,10 @@ struct SideBar: View {
                             }
                         }
                     }, label: {
-                        Label("repositroy", systemImage: "doc.fill")
-                    })
-                }.frame(minWidth:300)
-            }
+                        Label("Repositroy", systemImage: "doc.fill")
+                    }).accentColor(.gray)
+                }
+            }.frame(minWidth:300)
             .listStyle(SidebarListStyle())
             .navigationTitle("Title")
             .toolbar{

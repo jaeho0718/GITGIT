@@ -15,7 +15,7 @@ struct IssueGroupBoxStyle : GroupBoxStyle{
             configuration.label.foregroundColor(.secondary).font(.headline)
             Divider()
             configuration.content.padding(.top,5)
-        }.padding(10).background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow)).clipShape(RoundedRectangle(cornerRadius: 10))
+        }.padding(10).background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow)).clipShape(RoundedRectangle(cornerRadius: 5))
     }
 }
 
