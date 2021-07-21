@@ -23,9 +23,21 @@ class ViewModel : ObservableObject{
     @Published var Researchs : [Research] = []
     @Published var Hashtags : [Hashtag] = []
     @Published var Sites : [Site] = []
+    @Published var Codes : [Code] = []
     @Published var UserInfo : User? = nil
     @Published var nowRepository : Repository?
     @Published var GithubUserInfo : User_Info? = nil
+    var settingValue : SettingValue{
+        if let savedSetting = UserDefaults.standard.object(forKey: "Setting") as? Data {
+            if let loadedSetting = try? JSONDecoder().decode(SettingValue.self, from: savedSetting) {
+                return loadedSetting
+            }else{
+                return SettingValue(language_type: .Korean, onAutoKeyword: true, recomandSearch: true, code_type_light: "irWhite", code_type_dark: "irBlack")
+            }
+        }else{
+            return SettingValue(language_type: .Korean, onAutoKeyword: true, recomandSearch: true, code_type_light: "irWhite", code_type_dark: "irBlack")
+        }
+    }
     let container: NSPersistentContainer
     
     init() {
@@ -51,22 +63,22 @@ class ViewModel : ObservableObject{
         let research_fetchRequest : NSFetchRequest<Research> = Research.fetchRequest()
         let hashtag_fetchRequest : NSFetchRequest<Hashtag> = Hashtag.fetchRequest()
         let site_fetchRequest : NSFetchRequest<Site> = Site.fetchRequest()
-        
+        let code_fetchRequest : NSFetchRequest<Code> = Code.fetchRequest()
         do{
             Repositories = try container.viewContext.fetch(repository_fetchRequest)
             Researchs = try container.viewContext.fetch(research_fetchRequest)
             Hashtags = try container.viewContext.fetch(hashtag_fetchRequest)
             Sites = try container.viewContext.fetch(site_fetchRequest)
+            Codes = try container.viewContext.fetch(code_fetchRequest)
         }catch{
             //If fail to load data form container, Value List is empty
             Repositories = []
             Researchs = []
             Hashtags = []
             Sites = []
+            Codes = []
         }
     }
-    
-    
     
     /// Save Repository
     func saveRepository(id : String,name:String,site : String,language : String? = nil,descriptions : String? = nil){
@@ -101,6 +113,15 @@ class ViewModel : ObservableObject{
         site.tagID = tagID
         site.name = name
         site.url = url
+    }
+    
+    func saveCode(reviewID : UUID = UUID(),repo_id : String,title : String ,path : String,code : String){
+        let data = Code(context: container.viewContext)
+        data.code = code
+        data.path = path
+        data.repo_id = repo_id
+        data.reviewID = reviewID
+        data.title = title
     }
     
     func updateData(){
@@ -282,6 +303,19 @@ extension ViewModel{
             let header : HTTPHeaders = [.accept("application/vnd.github.VERSION.html"),.authorization("token "+user.access_token)]
             let parameters : Parameters = [:]
             AF.request("https://api.github.com/repos/\(user.user_name)/\(repository.name ?? "")/contents/\(path)",method: .get,parameters: parameters,headers: header)
+                .responseData{ data in
+                    if let value = data.data{
+                        completion(String(data: value, encoding: .utf8) ?? "")
+                    }
+                }
+        }
+    }
+    
+    func getGitCode(_ link : String,completion : @escaping (String)->()){
+        if let user = self.UserInfo{
+            let header : HTTPHeaders = [.accept("application/vnd.github.VERSION.html"),.authorization("token "+user.access_token)]
+            let parameters : Parameters = [:]
+            AF.request(link,method: .get,parameters: parameters,headers: header)
                 .responseData{ data in
                     if let value = data.data{
                         completion(String(data: value, encoding: .utf8) ?? "")
