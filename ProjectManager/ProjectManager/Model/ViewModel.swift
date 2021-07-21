@@ -24,6 +24,7 @@ class ViewModel : ObservableObject{
     @Published var Hashtags : [Hashtag] = []
     @Published var Sites : [Site] = []
     @Published var Codes : [Code] = []
+    @Published var CodeReviews : [CodeComment] = []
     @Published var UserInfo : User? = nil
     @Published var nowRepository : Repository?
     @Published var GithubUserInfo : User_Info? = nil
@@ -64,12 +65,14 @@ class ViewModel : ObservableObject{
         let hashtag_fetchRequest : NSFetchRequest<Hashtag> = Hashtag.fetchRequest()
         let site_fetchRequest : NSFetchRequest<Site> = Site.fetchRequest()
         let code_fetchRequest : NSFetchRequest<Code> = Code.fetchRequest()
+        let code_comment_fetchRequest : NSFetchRequest<CodeComment> = CodeComment.fetchRequest()
         do{
             Repositories = try container.viewContext.fetch(repository_fetchRequest)
             Researchs = try container.viewContext.fetch(research_fetchRequest)
             Hashtags = try container.viewContext.fetch(hashtag_fetchRequest)
             Sites = try container.viewContext.fetch(site_fetchRequest)
             Codes = try container.viewContext.fetch(code_fetchRequest)
+            CodeReviews = try container.viewContext.fetch(code_comment_fetchRequest)
         }catch{
             //If fail to load data form container, Value List is empty
             Repositories = []
@@ -77,6 +80,7 @@ class ViewModel : ObservableObject{
             Hashtags = []
             Sites = []
             Codes = []
+            CodeReviews = []
         }
     }
     
@@ -122,6 +126,14 @@ class ViewModel : ObservableObject{
         data.repo_id = repo_id
         data.reviewID = reviewID
         data.title = title
+    }
+    
+    func saveCodeComment(reviewID : UUID?,code : String,review : String){
+        let data = CodeComment(context: container.viewContext)
+        data.code = code
+        data.review = review
+        data.reviewID = reviewID
+        data.node_id = UUID()
     }
     
     func updateData(){

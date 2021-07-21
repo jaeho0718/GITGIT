@@ -78,7 +78,7 @@ struct RepositoryView: View {
                 )){
                     ForEach(viewmodel.Codes.filter({$0.repo_id == repo_data.id})){ code in
                         CodeReviews_Cell(code: code)
-                    }
+                    }.onDelete(perform: deleteCodeReviews)
                 }.onDrop(of: [.data], delegate:CodeDrop(completion: { file in
                     DispatchQueue.main.async {
                         if let id = repo_data.id{
@@ -108,8 +108,8 @@ struct RepositoryView: View {
                     viewmodel.deleteData(site)
                 }
                 viewmodel.deleteData(repo)
-                viewmodel.fetchData()
             })
+            viewmodel.fetchData()
         }
     }
     func deleteHash(at indexOffset : IndexSet){
@@ -118,6 +118,19 @@ struct RepositoryView: View {
                 let hash = viewmodel.Hashtags[index]
                 viewmodel.deleteData(hash)
             })
+            viewmodel.fetchData()
+        }
+    }
+    func deleteCodeReviews(at indexOffset : IndexSet){
+        DispatchQueue.main.async {
+            indexOffset.forEach({ index in
+                let CodeReviews = viewmodel.Codes.filter{$0.repo_id == repo_data.id}[index]
+                for review in viewmodel.CodeReviews.filter{$0.reviewID == CodeReviews.reviewID}{
+                    viewmodel.deleteData(review)
+                }
+                viewmodel.deleteData(CodeReviews)
+            })
+            viewmodel.fetchData()
         }
     }
 }
@@ -219,7 +232,10 @@ struct CodeReviews_Cell : View{
     var code : Code
     var body: some View{
         NavigationLink(destination:CodeReview(data: code)){
-            Text(code.title ?? "")
+            HStack{
+                FileType.getType(code.title ?? "").getImage().resizable().aspectRatio(contentMode: .fit).frame(width:15,height:15)
+                Text(code.title ?? "")
+            }
         }
     }
 }
