@@ -68,9 +68,12 @@ struct GitFileView : View{
             }
         }.groupBoxStyle(LinkGroupBoxStyle())
         .OnDragable(condition: file.type == "file", data: {
-            guard let url = URL(string: file.path) else {return NSItemProvider()}
-            guard let provider = NSItemProvider(contentsOf: url) else {return NSItemProvider()}
-            return provider
+            if let source_data = try? JSONEncoder().encode(file){
+                let data = source_data
+                return NSItemProvider(item: .some(data as NSSecureCoding), typeIdentifier: String(kUTTypeData))
+            }else{
+                return NSItemProvider()
+            }
         })
         .onTapGesture {
             viewmodel.getGitFiles(repository,path: file.path, completion: { value in
@@ -133,7 +136,7 @@ struct GitFileCode : View{
             GroupBox{
                 HStack(alignment:.center){
                     gitfile.getIcon().resizable().aspectRatio(contentMode: .fit).frame(width:17,height:17)
-                    Text(gitfile.name).font(.title2).bold()
+                    Text(gitfile.name).font(.title3).bold()
                     Spacer()
                     Button(action:{
                         fontSize -= 1
@@ -148,7 +151,7 @@ struct GitFileCode : View{
                     }.keyboardShortcut(KeyEquivalent("+"), modifiers: .command)
                 }.padding(2)
             }.groupBoxStyle(LinkGroupBoxStyle())
-            CodeView(theme: colorScheme == .dark ? .irBlack : .irWhite,code: $code, mode: FileType.getType(gitfile.name).code_mode.mode(), fontSize: fontSize, showInvisibleCharacters: true, lineWrapping: true)
+            CodeView(theme: colorScheme == .dark ? SettingValue.getTheme(viewmodel.settingValue.code_type_dark) : SettingValue.getTheme(viewmodel.settingValue.code_type_light) ,code: $code, mode: FileType.getType(gitfile.name).code_mode.mode(), fontSize: fontSize, showInvisibleCharacters: true, lineWrapping: true)
         }
         .onAppear{
             viewmodel.getGitCode(repository,path: "\(gitfile.path)", completion: { str in
@@ -156,12 +159,14 @@ struct GitFileCode : View{
                     code = html.string
                 }
             })
-            print(gitfile)
         }
         .OnDragable(condition: gitfile.type == "file", data: {
-            guard let url = URL(string: gitfile.path) else {return NSItemProvider()}
-            guard let provider = NSItemProvider(contentsOf: url) else {return NSItemProvider()}
-            return provider
+            if let source_data = try? JSONEncoder().encode(gitfile){
+                let data = source_data
+                return NSItemProvider(item: .some(data as NSSecureCoding), typeIdentifier: String(kUTTypeData))
+            }else{
+                return NSItemProvider()
+            }
         })
     }
 }

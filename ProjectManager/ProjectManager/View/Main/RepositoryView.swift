@@ -76,8 +76,21 @@ struct RepositoryView: View {
                     title: { Text("CODE REVIEW") },
                     icon: { Image("codefile").resizable().aspectRatio(contentMode: .fit).frame(width:15,height:15)}
                 )){
-                    
-                }
+                    ForEach(viewmodel.Codes.filter({$0.repo_id == repo_data.id})){ code in
+                        CodeReviews_Cell(code: code)
+                    }
+                }.onDrop(of: [.data], delegate:CodeDrop(completion: { file in
+                    DispatchQueue.main.async {
+                        if let id = repo_data.id{
+                            viewmodel.getGitCode(repo_data,path: "\(file.path)", completion: { str in
+                                if let code = try? NSAttributedString(data:  Data(str.utf8), options: [.documentType : NSAttributedString.DocumentType.html], documentAttributes: nil){
+                                    viewmodel.saveCode(repo_id: id, title: file.name, path: file.path, code: code.string)
+                                    viewmodel.fetchData()
+                                }
+                            })
+                        }
+                    }
+                }))
             }
         }.navigationTitle(Text("\(repo_data.name ?? "No Name")"))
         .onAppear{
@@ -118,6 +131,24 @@ struct IssueDrop : DropDelegate{
                     let url = NSURL(absoluteURLWithDataRepresentation: data, relativeTo: nil) as URL
                     //print(url.absoluteURL.absoluteString)
                     completion(url.absoluteURL.absoluteString)
+                }
+            })
+            return true
+        }else{
+            return false
+        }
+    }
+}
+
+struct CodeDrop : DropDelegate{
+    var completion : (GitFile)->()
+    func performDrop(info: DropInfo) -> Bool {
+        if let item = info.itemProviders(for: [.data]).first{
+            item.loadDataRepresentation(forTypeIdentifier: "public.data", completionHandler: { (data,error) in
+                if let DATA = data{
+                    if let file = try? JSONDecoder().decode(GitFile.self, from: DATA){
+                        completion(file)
+                    }
                 }
             })
             return true
@@ -180,6 +211,15 @@ struct Research_Cell : View{
             }
             viewmodel.deleteData(research)
             viewmodel.fetchData()
+        }
+    }
+}
+
+struct CodeReviews_Cell : View{
+    var code : Code
+    var body: some View{
+        NavigationLink(destination:CodeReview(data: code)){
+            Text(code.title ?? "")
         }
     }
 }
