@@ -32,9 +32,18 @@ struct MemoDetailView: View {
             }else{
                 ScrollView(.horizontal){
                     HStack{
-                        Text("# \(keyword)")
-                            .foregroundColor(.white)
-                            .padding([.leading,.trailing]).padding([.top,.bottom],5).background(Color.black)
+                        if viewmodel.settingValue.onAutoKeyword{
+                            Text("# \(keyword)")
+                                .foregroundColor(.white)
+                                .padding([.leading,.trailing]).padding([.top,.bottom],5).background(Color.black)
+                                .help("자동으로 추출된 키워드입니다.")
+                        }else{
+                            if viewmodel.Hashtags.filter({$0.tagID == research.tagID}).isEmpty{
+                                Text("# 키워드없음")
+                                    .foregroundColor(.white)
+                                    .padding([.leading,.trailing]).padding([.top,.bottom],5).background(Color.black)
+                            }
+                        }
                         ForEach(viewmodel.Hashtags.filter({$0.tagID == research.tagID})){ tag in
                             Text("# \(tag.tag ?? "no tag")")
                                 .foregroundColor(.white)
@@ -57,11 +66,13 @@ struct MemoDetailView: View {
                     Markdown("\(memo)")
                 }
             }.groupBoxStyle(IssueGroupBoxStyle())
-            if !(editmemo || sof_search_results.isEmpty){
-                ScrollView(.horizontal,showsIndicators:false){
-                    HStack{
-                        ForEach(sof_search_results,id:\.question_id){ result in
-                            sofSearchResultView(result)
+            if viewmodel.settingValue.recomandSearch{
+                if !(editmemo || sof_search_results.isEmpty){
+                    ScrollView(.horizontal,showsIndicators:false){
+                        HStack{
+                            ForEach(sof_search_results,id:\.question_id){ result in
+                                sofSearchResultView(result)
+                            }
                         }
                     }
                 }
@@ -147,9 +158,11 @@ struct MemoDetailView: View {
                 issue_opt = value
             })
         }
-        sof_searchReseult(search: "", tag: hash_str, completion: { results in
-            self.sof_search_results = results
-        })
+        if viewmodel.settingValue.recomandSearch{
+            sof_searchReseult(search: "", tag: hash_str, completion: { results in
+                self.sof_search_results = results
+            })
+        }
         memo = research.memo ?? ""
     }
     func deleteNewResearch(at indexSet : IndexSet){
