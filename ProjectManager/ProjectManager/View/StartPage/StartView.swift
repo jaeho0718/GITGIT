@@ -6,46 +6,77 @@
 //
 
 import SwiftUI
+import AVKit
+import CodeMirror_SwiftUI
+
 enum start_page {
-    case start,introduce,introduce2
+    case start,introduce,introduce2,settingdata,introduce3
+}
+
+enum initial_state {
+    case start,content
 }
 
 struct StartView: View {
     @EnvironmentObject var viewmodel : ViewModel
-    @Binding var show : Bool
+    @Binding var initialState : initial_state
     @State private var page : start_page = .start
+    @State private var language : SettingValue.language = .Korean
+    @State private var code_theme_light : CodeViewTheme = .irWhite
+    @State private var code_theme_dark : CodeViewTheme = .irBlack
+    var player : AVPlayer{
+        let av = AVPlayer(url: Bundle.main.url(forResource: "Ink", withExtension: "mp4")!)
+        av.isMuted = true
+        av.allowsExternalPlayback = false
+        av.play()
+        return av
+    }
     var body: some View {
         ZStack{
+            AVPlayerControllerRepresented(player: player).aspectRatio(contentMode: .fill)
+            VisualEffectView(material: .underWindowBackground, blendingMode: .withinWindow).opacity(0.8)
             switch page{
             case .start:
-                Start1(page: $page)
+                Start1(page: $page,language: $language)
             case .introduce:
                 Start2(page: $page)
             case .introduce2:
-                Start3(page: $page, show: $show)
+                Start3(code_theme_light:$code_theme_light,code_theme_dark:$code_theme_dark,page: $page)
+            case .settingdata:
+                Start4(page: $page, language: $language, code_theme_light: $code_theme_light, code_theme_dark: $code_theme_dark)
+            case .introduce3:
+                Start5(state: $initialState)
             }
-        }.frame(width:300,height:300)
+        }.frame(width:1280,height:720)
     }
 }
 
 struct StartView_Previews: PreviewProvider {
     static var previews: some View {
-        StartView(show: .constant(true)).environmentObject(ViewModel())
+        StartView(initialState: .constant(.start)).environmentObject(ViewModel())
     }
 }
 
 struct Start1 : View{
     @Binding var page : start_page
+    @Binding var language : SettingValue.language
     var body: some View {
         VStack{
-            Text("안녕하세요").bold().font(.largeTitle)
-            Text("안녕하세요").bold().font(.largeTitle)
-            Button(action:{
-                page = .introduce
-            }){
-                Text("시작하기")
-            }.buttonStyle(StartButtonStyle())
-            .shadow(radius: 0.5)
+            Text("PROGRAM MANAGER").bold().font(.largeTitle)
+            Text("programCode management").font(.headline).opacity(0.7)
+                .padding(.bottom,40)
+            HStack{
+                Picker("", selection: $language){
+                    ForEach(SettingValue.language.allCases,id:\.self){ value in
+                        Text(value.name)
+                    }
+                }.frame(maxWidth:400).labelsHidden()
+                Button(action:{
+                    page = .introduce
+                }){
+                    Image(systemName: "checkmark")
+                }
+            }
         }
     }
 }
@@ -57,13 +88,14 @@ struct Start2 : View{
     @State private var password : String = ""
     var body: some View {
         VStack{
-            Text("깃허브 연동").bold().font(.largeTitle)
-            Text("프로그램을 이용하기 위해서 Github와 연동해야합니다.").font(.callout)
+            Group{
+                Image("github").resizable().aspectRatio(contentMode: .fit)
+                    .frame(width:70,height:70)
+                Text("깃허브 연동").bold().font(.largeTitle)
+                Text("프로그램을 이용하기 위해서 Github와 연동해야합니다.").font(.callout)
+            }
             Spacer()
             Group{
-                ZStack{
-                    viewmodel.getUserImage().resizable().clipShape(Circle()).overlay(Circle().stroke(lineWidth: 2)).padding()
-                }.aspectRatio(contentMode: .fit)
                 TextField("깃허브 ID", text: $id).textFieldStyle(RoundedBorderTextFieldStyle())
                 SecureField("Access Token", text: $password).textFieldStyle(RoundedBorderTextFieldStyle())
             }.padding([.leading,.trailing])
@@ -75,25 +107,30 @@ struct Start2 : View{
                         if !(viewmodel.updateUser(User(user_name: id, access_token: password))){
                         }else{
                             viewmodel.fetchData()
-                            if viewmodel.UserInfo != nil{
-                                page = .introduce2
-                            }
+                            page = .introduce2
                         }
                     }else{
                         if !(viewmodel.createUser(User(user_name: id, access_token: password))){
                         }else{
                             viewmodel.fetchData()
-                            if viewmodel.UserInfo != nil{
-                                page = .introduce2
-                            }
+                            page = .introduce2
                         }
                     }
                 }
             }){
-                Text("연동하기")
-            }.buttonStyle(StartButtonStyle())
-            .shadow(radius: 0.5)
+                Text("Connect")
+                    .bold()
+                    .font(.callout)
+                    .foregroundColor(.white)
+                    .frame(maxWidth:.infinity,maxHeight:40)
+            }.buttonStyle(RemoveBackgroundStyle()).background(Color.green)
+            .cornerRadius(10)
+            .padding([.leading,.trailing])
+            Link("AccessToken 얻는 법", destination: URL(string: "https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token")!).font(.callout)
         }.padding([.top,.bottom])
+        .frame(width:300,height:300)
+        .background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
         .onAppear{
             id = viewmodel.UserInfo?.user_name ?? ""
             password = viewmodel.UserInfo?.access_token ?? ""
@@ -110,45 +147,205 @@ struct Start2 : View{
 
 struct Start3 : View{
     @EnvironmentObject var viewmodel : ViewModel
+    @Binding var code_theme_light : CodeViewTheme
+    @Binding var code_theme_dark : CodeViewTheme
     @Binding var page : start_page
-    @Binding var show : Bool
+    let code : String = "import SwiftUI \nimport Foundation\n struct ContentView : View{\n     var body : some View {\n         VStack{\n           Text(\"Hello_World\")\n        }\n    }\n }"
+    var body: some View{
+        VStack(alignment:.center){
+            Text("코드 에디터").font(.title).bold()
+            GeometryReader{ geometry in
+                HStack {
+                    VStack{
+                        Text("LIGHT MODE")
+                        CodeView(theme: code_theme_light, code: .constant(code), mode: CodeMode.swift.mode(), fontSize: 10, showInvisibleCharacters: false, lineWrapping: false)
+                        Picker("Theme", selection: $code_theme_light){
+                            ForEach(CodeViewTheme.allCases,id:\.self){ theme in
+                                Text(theme.rawValue).tag(theme)
+                            }
+                        }.labelsHidden()
+                    }.frame(width:geometry.size.width/2,height:250)
+                    VStack{
+                        Text("DARK MODE")
+                        CodeView(theme: code_theme_dark, code: .constant(code), mode: CodeMode.swift.mode(), fontSize: 10, showInvisibleCharacters: false, lineWrapping: false)
+                        Picker("Theme", selection: $code_theme_dark){
+                            ForEach(CodeViewTheme.allCases,id:\.self){ theme in
+                                Text(theme.rawValue).tag(theme)
+                            }
+                        }.labelsHidden()
+                    }.frame(width:geometry.size.width/2,height:250)
+                }
+            }.frame(maxWidth:.infinity)
+            .padding([.leading,.trailing,.top])
+            HStack{
+                Spacer()
+                Button(action:{
+                    page = .settingdata
+                }){
+                    Text("완료")
+                }
+            }.padding([.leading,.trailing])
+        }.padding([.top,.bottom])
+        .frame(width:600,height:400)
+        .background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+}
+
+struct Start4 : View{
+    @EnvironmentObject var viewmodel : ViewModel
+    @State private var middle : Bool = false
+    @State private var inner : Bool = false
+    @State private var outter : Bool = false
+    @State private var image : Bool = false
+    @State private var load_state : state = .loadData
+    @Binding var page : start_page
+    @Binding var language : SettingValue.language
+    @Binding var code_theme_light : CodeViewTheme
+    @Binding var code_theme_dark : CodeViewTheme
+    enum state{
+        case loadData,fetchData,setting,done
+        var description : LocalizedStringKey{
+            switch self {
+            case .loadData:
+                return "데이터 불러오는 중"
+            case .fetchData:
+                return "데이터 적용 중"
+            case .setting:
+                return "설정 적용 중"
+            case .done:
+                return "완료"
+            }
+        }
+    }
     var body: some View{
         VStack{
-            Text("기능").bold().font(.largeTitle)
-            Group{
-                HStack{
-                    Image(systemName: "link").resizable().foregroundColor(.blue).aspectRatio(contentMode: .fit).frame(width:20,height:20)
-                    Spacer()
-                    Text("깃허브 연동으로 이슈를 확인하고 이슈와 관련한 자료를 쉽게 수집할 수 있어요.").frame(width:250)
+            ZStack{
+                Circle().foregroundColor(.black).frame(width:260,height: 260)
+                    .scaleEffect(outter ? 1.1 : 0.5,anchor: .center).opacity(0.5)
+                Circle().foregroundColor(.gray).frame(width:240,height: 240)
+                    .scaleEffect(middle ? 1.1 : 0.5,anchor: .center).opacity(0.5)
+                Circle().foregroundColor(.white).frame(width:200,height: 200)
+                    .scaleEffect(inner ? 1.1 : 0.5,anchor: .center).opacity(0.5)
+                viewmodel.getUserImage().resizable().aspectRatio(contentMode: .fit).clipShape(Circle()).frame(width:150,height: 150)
+                    .scaleEffect(image ? 1.1 : 0.8,anchor: .center)
+            }
+            Text(load_state.description)
+                .font(.callout)
+                .bold()
+                .padding(.top,20)
+        }.onAppear{
+            withAnimation(Animation.easeOut(duration: 1.6).repeatForever(autoreverses: true).delay(0.7)){
+                image.toggle()
+            }
+            withAnimation(Animation.easeOut(duration: 1.6).repeatForever(autoreverses: true).delay(0.5)){
+                middle.toggle()
+            }
+            withAnimation(Animation.easeOut(duration: 1.6).repeatForever(autoreverses: true).delay(0.3)){
+                inner.toggle()
+            }
+            withAnimation(Animation.easeOut(duration: 1.7).repeatForever(autoreverses: true).delay(0.1)){
+                outter.toggle()
+            }
+            load_state = .fetchData
+        }.onChange(of: load_state, perform: { value in
+            switch value{
+            case .loadData:
+                break
+            case .fetchData:
+                let time = DispatchTime.now() + .seconds(8)
+                DispatchQueue.main.asyncAfter(deadline: time) {
+                    fetchData()
+                }
+            case .setting:
+                let time = DispatchTime.now() + .seconds(4)
+                DispatchQueue.main.asyncAfter(deadline: time) {
+                    setting()
+                }
+            case .done:
+                let time = DispatchTime.now() + .seconds(2)
+                DispatchQueue.main.asyncAfter(deadline: time) {
+                    page = .introduce3
                 }
             }
+        })
+    }
+    
+    func setting(){
+        let storeValue = SettingValue(language_type: language, onAutoKeyword: true, recomandSearch: true, code_type_light: code_theme_light.rawValue, code_type_dark: code_theme_dark.rawValue)
+        if let encode = try? JSONEncoder().encode(storeValue){
+            UserDefaults.standard.setValue(encode, forKey: "Setting")
+        }
+        withAnimation(.easeIn){
+            load_state = .done
+        }
+    }
+    
+    func fetchData(){
+        viewmodel.fetchData()
+        withAnimation(.easeIn){
+            load_state = .setting
+        }
+    }
+    
+}
+
+struct Start5 : View{
+    @Binding var state : initial_state
+    var body: some View{
+        VStack{
+            Text("다음 기능들을 이용해보세요.").font(.largeTitle).bold()
             Divider()
-            Group{
+            HStack{
+                Image(systemName: "filemenu.and.selection").resizable().aspectRatio(contentMode: .fit).frame(width:50)
+                Text("깃허브에 있는 레퍼토리를 관리하세요.")
+                Spacer()
+            }.frame(width:350)
+            HStack{
+                Image(systemName: "exclamationmark.square").resizable().aspectRatio(contentMode: .fit).frame(width:50)
+                Text("이슈를 등록 및 확인하세요.")
+                Spacer()
+            }.frame(width:350)
+            HStack{
+                Image(systemName: "doc.text.magnifyingglass").resizable().aspectRatio(contentMode: .fit).frame(width:50)
+                Text("드래그앤드랍으로 개발에 필요한 자료들을 모아보세요.")
+                Spacer()
+            }.frame(width:350)
+            HStack{
+                Image(systemName: "chevron.left.slash.chevron.right").resizable().aspectRatio(contentMode: .fit).frame(width:50)
+                Text("코드를 분석하고 GIST에 올려보세요.")
+                Spacer()
+            }.frame(width:350)
+            HStack{
+                Image(systemName: "books.vertical").resizable().aspectRatio(contentMode: .fit).frame(width:50)
                 HStack{
-                    Image(systemName: "doc.text.magnifyingglass").resizable().foregroundColor(.orange).aspectRatio(contentMode: .fit).frame(width:20,height:20)
-                    Spacer()
-                    Text("프로젝트와 관련된 자료들을 드래그앤드롭으로 바로 추가하세요.").frame(width:250)
+                    Text("BETA").font(.caption2).italic().padding(4).overlay(Capsule().stroke()).foregroundColor(.red).opacity(0.8)
+                    Text("자동으로 추천해주는 자료를 확인하세요.")
                 }
-            }
-            Divider()
-            Group{
-                HStack{
-                    Image(systemName: "number.square").resizable().foregroundColor(.green).aspectRatio(contentMode: .fit).frame(width:20,height:20)
-                    Spacer()
-                    VStack(alignment:.leading){
-                        Text("사용자가 정리한 자료를 바탕으로 도움이 될만한 자료를 추천해줘요.")
-                        Text("Beta기능으로 불안정할 수 있습니다.").font(.caption2).opacity(0.6)
-                    }.frame(width:250)
-                }
-            }
+                Spacer()
+            }.frame(width:350)
             Spacer()
             Button(action:{
-                viewmodel.fetchData()
-                show = false
+                UserDefaults.standard.setValue(true, forKey: "start")
+                state = .content
             }){
                 Text("시작하기")
-            }.buttonStyle(StartButtonStyle())
-            .shadow(radius: 0.5)
-        }.padding()
+            }.buttonStyle(AddButtonStyle())
+        }.frame(width:400,height:400)
+    }
+}
+
+struct AVPlayerControllerRepresented : NSViewRepresentable {
+    var player : AVPlayer
+    
+    func makeNSView(context: Context) -> AVPlayerView {
+        let view = AVPlayerView()
+        view.controlsStyle = .none
+        view.player = player
+        return view
+    }
+    
+    func updateNSView(_ nsView: AVPlayerView, context: Context) {
+        
     }
 }
