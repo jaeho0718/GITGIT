@@ -27,8 +27,8 @@ struct RepositoryView: View {
                 NavigationLink(destination:GitubPage(repository: repo_data)){
                     Label(
                         title: { Text("Issues") },
-                        icon: { Image("bug").resizable().aspectRatio(contentMode: .fit).frame(width:15,height:15)
-                            
+                        icon: { Image(systemName:"exclamationmark.square.fill").resizable().aspectRatio(contentMode: .fit).frame(width:15,height:15)
+                            .foregroundColor(.orange)
                         }
                     )
                 }
@@ -51,15 +51,11 @@ struct RepositoryView: View {
                             Label("자료 추가", systemImage: "plus.circle")
                         }.accentColor(.secondary)
                     }
-                }.onDrop(of: [.url], delegate: IssueDrop(completion: {
-                    url in
-                    if url.contains("github.com") && url.contains("\(repo_data.name ?? "")") && url.contains("issues"){
-                        //데이터 유형이 일치할 때
-                        let url_seperate = url.components(separatedBy: ["/"])
-                        viewmodel.getIssueName("https://api.github.com/repos/\(url_seperate[3])/\(url_seperate[4])/issues/\(url_seperate[6])", complication: { value in
-                            viewmodel.saveResearch(name: "Issue #\(value.number) : \(value.title)", memo: "\(value.body)", repo_ID: repo_data.id ?? "",issue_url: value.html_url)
-                            viewmodel.fetchData()
-                        })
+                }
+                .onDrop(of: [.data], delegate: IssueDrop(completion: { value in
+                    if let id = repo_data.id{
+                        viewmodel.saveResearch(name: value.title, memo: value.body, repo_ID: id, issue_url : value.html_url)
+                        viewmodel.fetchData()
                     }
                 }))
                 /*
@@ -75,7 +71,7 @@ struct RepositoryView: View {
                 Section(header:Label(
                     title: { Text("CODE REVIEW") },
                     icon: { Image("codefile").resizable().aspectRatio(contentMode: .fit).frame(width:15,height:15)}
-                )){
+                ),footer:Text("Files에서 드래그앤 드롭을 통해 파일을 추가할 수 있습니다.").font(.caption2).opacity(0.5)){
                     ForEach(viewmodel.Codes.filter({$0.repo_id == repo_data.id})){ code in
                         CodeReviews_Cell(code: code)
                     }.onDelete(perform: deleteCodeReviews)
@@ -136,14 +132,14 @@ struct RepositoryView: View {
 }
 
 struct IssueDrop : DropDelegate{
-    var completion : (String)->()
+    var completion : (Issues)->()
     func performDrop(info: DropInfo) -> Bool {
-        if let item = info.itemProviders(for: [.url]).first{
-            item.loadItem(forTypeIdentifier: "public.url", options: nil, completionHandler: { (urlData,error) in
-                if let data = urlData as? Data{
-                    let url = NSURL(absoluteURLWithDataRepresentation: data, relativeTo: nil) as URL
-                    //print(url.absoluteURL.absoluteString)
-                    completion(url.absoluteURL.absoluteString)
+        if let item = info.itemProviders(for: [.data]).first{
+            item.loadDataRepresentation(forTypeIdentifier: "public.data", completionHandler: { (data,error) in
+                if let DATA = data{
+                    if let file = try? JSONDecoder().decode(Issues.self, from: DATA){
+                        completion(file)
+                    }
                 }
             })
             return true

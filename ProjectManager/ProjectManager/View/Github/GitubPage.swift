@@ -37,6 +37,11 @@ struct GitubPage: View {
                     }
                 }
             }
+            HStack{
+                Text("Issues : \(issues.count)").font(.caption2).padding(.leading,5)
+                Spacer()
+                Text("이슈를 자료에 드래그해 자료를 수집하세요.").font(.caption2).padding(.trailing,5)
+            }.frame(maxWidth:.infinity,maxHeight:20).background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow))
         }
         .onAppear{
             setValue()
@@ -77,7 +82,17 @@ struct IssueCell : View{
     var issue : Issues
     var repo : Repository
     var body: some View{
-        GroupBox(label:Label("\(issue.title) #\(issue.number)", systemImage: "ant.fill")){
+        GroupBox(label:
+                 Label(title: {
+                    HStack{
+                        Text("\(issue.title) #\(issue.number)")
+                        Spacer()
+                        Text("\(issue.comments)").font(.caption2).foregroundColor(.white).padding(5).background(Circle().foregroundColor(.black))
+                    }
+                 }, icon: {
+                        Image(systemName: "exclamationmark.square.fill")
+                 })
+        ){
             VStack(alignment:.leading){
                 HStack(alignment:.center){
                     viewmodel.getUserImage(issue.user.login)
@@ -145,7 +160,14 @@ struct IssueCell : View{
                 comments = value
             })
         }
-        .OnDragable(condition: drag_condition, data: { return NSItemProvider(object: NSURL(string: issue.html_url)!)})
+        .OnDragable(condition: drag_condition, data: {
+            if let source_data = try? JSONEncoder().encode(issue){
+                let data = source_data
+                return NSItemProvider(item: .some(data as NSSecureCoding), typeIdentifier: String(kUTTypeData))
+            }else{
+                return NSItemProvider()
+            }
+        })
     }
 }
 
@@ -220,7 +242,7 @@ struct EmptyIssue : View{
     @State private var moveRightLeft2 : Bool = false
     @State private var empty : Bool = false
     var body: some View{
-        GroupBox(label:Label("Issue", systemImage: "ant")){
+        GroupBox(label:Label("Issue", systemImage: "exclamationmark.square.fill")){
             if empty{
                 Text("이슈가 비어있네요.")
             }else{

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CodeMirror_SwiftUI
+import WaterfallGrid
 
 struct GithubCode: View {
     @EnvironmentObject var viewmodel : ViewModel
@@ -31,15 +32,16 @@ struct GithubCode: View {
                     GitFileCode(gitfile:file,repository:repository)
                 }
             }else{
-                List{
-                    if nowFile.isEmpty{
-                        EmptyGitFile()
-                    }else{
-                        ForEach(nowFile,id:\.sha){ file in
-                            GitFileView(nowFile: $nowFile, file_order: $file_order, repository: repository, file: file)
-                        }
-                    }
-                }
+                 List{
+                     if nowFile.isEmpty{
+                         EmptyGitFile()
+                     }else{
+                         ForEach(nowFile,id:\.sha){ file in
+                             GitFileView(nowFile: $nowFile, file_order: $file_order, repository: repository, file: file)
+                         }
+                     }
+                 }
+                 
             }
             GitFileDirectory(repository: repository, nowFile: $nowFile, file_order: $file_order).padding([.bottom,.leading,.trailing],5)
         }.onAppear{
