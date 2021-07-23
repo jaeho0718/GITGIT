@@ -226,3 +226,18 @@ struct FileType{
         }
     }
 }
+
+struct GistPostData : Codable{
+    var description : String
+    var files : [String : GistFile]
+    var type : Bool
+    
+    enum codingkey : String,CodingKey{
+        case description,files
+        case type = "public"
+    }
+}
+
+struct GistFile : Codable{
+    var content : String
+}

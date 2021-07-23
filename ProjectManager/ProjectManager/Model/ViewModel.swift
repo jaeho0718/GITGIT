@@ -501,3 +501,25 @@ extension ViewModel{
         }
     }
 }
+
+extension ViewModel{
+    func createGist(_ data : String,fileName : String,document:String,gistPublic : Bool){
+        if let user = self.UserInfo{
+            let postData = GistPostData(description: document, files: [fileName : GistFile(content: data)], type: gistPublic)
+            guard let postObject = try? JSONEncoder().encode(postData) else {
+                print("error decode")
+                return}
+            let url = URL(string: "https://api.github.com/gists")!
+            var request = URLRequest(url: url)
+            request.addValue("token "+user.access_token, forHTTPHeaderField:"Authorization")
+            request.addValue("application/vnd.github.v3+json", forHTTPHeaderField: "accept")
+            request.httpMethod = "POST"
+            request.httpBody = postObject
+            URLSession.shared.dataTask(with: request){ (json,response,error) in
+                if let error = error{
+                    print(error.localizedDescription)
+                }
+            }.resume()
+        }
+    }
+}

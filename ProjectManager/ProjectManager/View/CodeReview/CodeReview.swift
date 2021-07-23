@@ -16,8 +16,8 @@ struct CodeReview: View {
         GeometryReader{ geomtry in
             let width = geomtry.size.width/2
             HSplitView{
-                CodeReviewCode(code: $code,data:data).frame(minWidth:width,maxWidth:.infinity)
-                CodeReviews(data:data).frame(minWidth:width,maxWidth:.infinity)
+                CodeReviewCode(code: $code,data:data).frame(minWidth:width-100,maxWidth:.infinity)
+                CodeReviews(data:data).frame(minWidth:width-100,maxWidth:.infinity)
             }
         }.onAppear{
             code = data.code ?? ""
@@ -113,7 +113,7 @@ struct AddReviewCell : View{
                     Text("Add")
                 }.buttonStyle(AddButtonStyle())
             }
-        }.padding(5).background(VisualEffectView(material: .underPageBackground, blendingMode: .withinWindow)).cornerRadius(5)
+        }.padding(5).background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow)).cornerRadius(5)
     }
 }
 
@@ -121,6 +121,7 @@ struct ReviewCell : View{
     @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject var viewmodel : ViewModel
     @State private var showDetail : Bool = false
+    @State private var uploadGist : Bool = false
     var data : CodeComment
     var type : String
     var keyword : String{
@@ -130,21 +131,31 @@ struct ReviewCell : View{
     }
     var body: some View{
         VStack{
-            HStack{
+            HStack(alignment:.bottom){
                 Text(keyword).font(.headline).help("자동으로 추출된 키워드입니다.")
                 Spacer()
+                Button(action:{
+                    uploadGist.toggle()
+                }){
+                    Image(systemName: "square.and.arrow.up.fill")
+                }.buttonStyle(RemoveBackgroundStyle())
+                .help("GIST에 업로드하기")
                 Button(action:{
                     withAnimation(.spring()){
                         showDetail.toggle()
                     }
                 }){
-                    Image(systemName: showDetail ? "arrow.down.right.and.arrow.up.left.circle.fill" : "arrow.up.left.and.arrow.down.right.circle.fill")
+                    Image(systemName: showDetail ? "chevron.up.square.fill" : "chevron.down.square.fill")
                 }.buttonStyle(RemoveBackgroundStyle())
+                
             }.frame(maxWidth:.infinity,maxHeight: 30)
             if !showDetail{
                 CodeView(theme: colorScheme == .dark ? SettingValue.getTheme(viewmodel.settingValue.code_type_dark) : SettingValue.getTheme(viewmodel.settingValue.code_type_light), code: .constant(data.code ?? ""), mode: FileType.getType(type).code_mode.mode(), showInvisibleCharacters: false, lineWrapping: false).frame(minHeight:150).padding(.top,5).allowsHitTesting(false)
                 Markdown("\(data.review ?? "")").padding(.bottom,5)
             }
-        }.padding(5).background(VisualEffectView(material: .underPageBackground, blendingMode: .withinWindow)).clipShape(RoundedRectangle(cornerRadius: 10))
+        }.padding(5).background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow)).clipShape(RoundedRectangle(cornerRadius: 10))
+        .sheet(isPresented: $uploadGist, content: {
+            GistUploadView(show: $uploadGist,title:type, comment: data)
+        })
     }
 }
