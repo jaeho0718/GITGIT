@@ -11,27 +11,36 @@ struct SideBar: View {
     @EnvironmentObject var viewmodel : ViewModel
     @SceneStorage("pin") var pin : Bool = true
     @SceneStorage("repository") var repository : Bool = true
+    
+    var account : some View{
+        NavigationLink(destination: AccountView()){
+            if let user = viewmodel.UserInfo{
+                HStack(alignment:.center){
+                    viewmodel.getUserImage().resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width:15,height:15).clipShape(Circle())
+                        .overlay(Circle().stroke())
+                    if let user_info = viewmodel.GithubUserInfo{
+                        Text(user_info.name).bold()
+                    }else{
+                        Text(user.user_name).bold()
+                    }
+                    Spacer()
+                }
+            }else{
+                Label("Account", systemImage: "person.crop.circle")
+            }
+        }
+    }
+    
     var body: some View {
         NavigationView{
             Form{
                 List{
-                    NavigationLink(destination: AccountView()){
-                        if let user = viewmodel.UserInfo{
-                            HStack(alignment:.center){
-                                viewmodel.getUserImage().resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(width:15,height:15).clipShape(Circle())
-                                    .overlay(Circle().stroke())
-                                if let user_info = viewmodel.GithubUserInfo{
-                                    Text(user_info.name).bold()
-                                }else{
-                                    Text(user.user_name).bold()
-                                }
-                            }
-                        }else{
-                            Label("Account", systemImage: "person.crop.circle")
-                        }
-                    }
+                    account
+                    NavigationLink(destination:GithubGist()){
+                        Label("GITHUB GIST", systemImage: "chevron.left.slash.chevron.right")
+                    }.accentColor(.gray)
                     DisclosureGroup(isExpanded: $pin, content: {
                         if viewmodel.Repositories.isEmpty{
                             Text("Github의 레퍼토리를 불러올 수 없습니다.").font(.caption)

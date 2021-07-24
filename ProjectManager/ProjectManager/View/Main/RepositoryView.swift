@@ -32,6 +32,14 @@ struct RepositoryView: View {
                         }
                     )
                 }
+                NavigationLink(destination: CommitsView(repository: repo_data)){
+                    Label(
+                        title: { Text("Commits") },
+                        icon: { Image("commit").resizable().aspectRatio(contentMode: .fit).frame(width:15,height:15)
+                            .foregroundColor(.orange)
+                        }
+                    )
+                }
                 Divider()
                 Section(header:
                     Label(title: {
@@ -53,9 +61,11 @@ struct RepositoryView: View {
                     }
                 }
                 .onDrop(of: [.data], delegate: IssueDrop(completion: { value in
-                    if let id = repo_data.id{
-                        viewmodel.saveResearch(name: value.title, memo: value.body, repo_ID: id, issue_url : value.html_url)
-                        viewmodel.fetchData()
+                    DispatchQueue.main.async {
+                        if let id = repo_data.id{
+                            viewmodel.saveResearch(name: value.title, memo: value.body, repo_ID: id, issue_url : value.html_url)
+                            viewmodel.fetchData()
+                        }
                     }
                 }))
                 /*

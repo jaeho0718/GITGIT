@@ -143,6 +143,12 @@ struct AccountView: View {
                 for repo in viewmodel.Repositories{
                     viewmodel.deleteData(repo)
                 }
+                for code in viewmodel.Codes{
+                    viewmodel.deleteData(code)
+                }
+                for review in viewmodel.CodeReviews{
+                    viewmodel.deleteData(review)
+                }
                 user_name = ""
                 user_token = ""
                 viewmodel.fetchData()
