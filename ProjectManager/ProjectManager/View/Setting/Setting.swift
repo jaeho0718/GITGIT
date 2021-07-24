@@ -99,11 +99,13 @@ struct BasicSetting : View{
     var body: some View{
         ScrollView(.vertical){
             VStack{
-                Picker("언어", selection: $language){
-                    ForEach(SettingValue.language.allCases){ type in
-                        Text(type.name).tag(type)
-                    }
-                }.pickerStyle(MenuPickerStyle())
+                /*
+                 Picker("언어", selection: $language){
+                     ForEach(SettingValue.language.allCases){ type in
+                         Text(type.name).tag(type)
+                     }
+                 }.pickerStyle(MenuPickerStyle())
+                 */
                 Toggle("오토 키워드", isOn: $autoKeyword).toggleStyle(SwitchToggleStyle())
                     .frame(maxWidth:.infinity)
                 Toggle("검색 추천", isOn: $autoSearch).toggleStyle(SwitchToggleStyle())

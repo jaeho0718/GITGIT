@@ -25,7 +25,7 @@ struct StartView: View {
     @State private var code_theme_light : CodeViewTheme = .irWhite
     @State private var code_theme_dark : CodeViewTheme = .irBlack
     var player : AVPlayer{
-        let av = AVPlayer(url: Bundle.main.url(forResource: "Ink", withExtension: "mp4")!)
+        let av = AVPlayer(url: Bundle.main.url(forResource: "Stars", withExtension: "mp4")!)
         av.isMuted = true
         av.allowsExternalPlayback = false
         av.play()
@@ -33,8 +33,8 @@ struct StartView: View {
     }
     var body: some View {
         ZStack{
-            AVPlayerControllerRepresented(player: player).aspectRatio(contentMode: .fill)
-            VisualEffectView(material: .underWindowBackground, blendingMode: .withinWindow).opacity(0.8)
+            AVPlayerControllerRepresented(player: player).aspectRatio(contentMode: .fill).allowsHitTesting(false)
+            VisualEffectView(material: .underWindowBackground, blendingMode: .withinWindow).opacity(0.5)
             switch page{
             case .start:
                 Start1(page: $page,language: $language)
@@ -62,20 +62,22 @@ struct Start1 : View{
     @Binding var language : SettingValue.language
     var body: some View {
         VStack{
-            Text("PROGRAM MANAGER").bold().font(.largeTitle)
-            Text("programCode management").font(.headline).opacity(0.7)
+            Text("GITGIT").bold().font(.largeTitle)
+            Text("Code Manager").font(.headline).opacity(0.7)
                 .padding(.bottom,40)
             HStack{
-                Picker("", selection: $language){
-                    ForEach(SettingValue.language.allCases,id:\.self){ value in
-                        Text(value.name)
-                    }
-                }.frame(maxWidth:400).labelsHidden()
+                /*
+                 Picker("", selection: $language){
+                     ForEach(SettingValue.language.allCases,id:\.self){ value in
+                         Text(value.name)
+                     }
+                 }.frame(maxWidth:400).labelsHidden()
+                 */
                 Button(action:{
                     page = .introduce
                 }){
-                    Image(systemName: "checkmark")
-                }
+                    Text("시작하기")
+                }.buttonStyle(AddButtonStyle())
             }
         }
     }
