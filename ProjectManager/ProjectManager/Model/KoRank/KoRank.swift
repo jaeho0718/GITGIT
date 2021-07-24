@@ -27,7 +27,10 @@ class KoRank{
 extension KoRank{
     func BodyToWord()->[KoWord]{
         //let newbody = KoWord.removeStopwords(body, language: language)
-        let tokens = KoWord.getToken(body,language: language)
+        var tokens : [String] = []
+        KoWord.getToken(body,native : true, language: language ,completion: { token in
+            tokens = token
+        })
         var words : [KoWord] = []
         for word in tokens{
             words.append(KoWord(word,language:language, index: words.count))
