@@ -33,6 +33,12 @@ struct Repository_Info : Codable{
     var html_url : String //Repository site
     var description : String? //Repository description
     var language : String? //Repository language
+    var repo_private : Bool
+    
+    enum CodingKeys : String,CodingKey{
+        case node_id,name,full_name,html_url,description,language
+        case repo_private = "private"
+    }
 }
 
 struct Repositories_Info : Codable{
@@ -232,7 +238,7 @@ struct GistPostData : Codable{
     var files : [String : GistFile]
     var type : Bool
     
-    enum codingkey : String,CodingKey{
+    enum CodingKeys : String,CodingKey{
         case description,files
         case type = "public"
     }
@@ -240,4 +246,60 @@ struct GistPostData : Codable{
 
 struct GistFile : Codable{
     var content : String
+}
+
+struct Gist : Codable{
+    var id : String
+    var url : String
+    var node_id : String
+    var html_url : String
+    var created_at : String
+    var updated_at : String?
+    var comments : Int
+    var gist_public : Bool
+    var owner : GistOwner
+    var files : [String:GistFiles]
+    var description : String
+    enum CodingKeys : String, CodingKey{
+        case url,node_id,html_url,created_at,updated_at,comments,files,owner,description,id
+        case gist_public = "public"
+    }
+}
+
+struct GistFiles : Codable{
+    var filename : String
+    var type : String
+    var language : String
+    var raw_url : String
+}
+
+struct GistOwner : Codable{
+    var login : String
+}
+
+struct GitCommits : Codable{
+    var sha : String
+    var node_id : String
+    var url : String
+    var commit : GitCommit
+}
+
+struct GitCommit : Codable{
+    var author : [String:String]
+    var committer : [String:String]
+    var tree : [String:String]
+    var message : String
+}
+
+struct GitCommitsChange : Codable{
+    var files : [ChangedCommitFile]
+}
+
+struct ChangedCommitFile : Codable{
+    var sha : String
+    var filename : String
+    var additions : Int
+    var deletions : Int
+    var changes : Int
+    var patch : String
 }

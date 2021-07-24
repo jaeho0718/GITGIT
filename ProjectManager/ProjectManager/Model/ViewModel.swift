@@ -85,7 +85,7 @@ class ViewModel : ObservableObject{
     }
     
     /// Save Repository
-    func saveRepository(id : String,name:String,site : String,language : String? = nil,descriptions : String? = nil){
+    func saveRepository(id : String,name:String,site : String,language : String? = nil,descriptions : String? = nil,repo_private : Bool){
         let repotory = Repository(context: container.viewContext)
         repotory.id = id
         repotory.pin = false
@@ -93,6 +93,7 @@ class ViewModel : ObservableObject{
         repotory.name = name
         repotory.language = language
         repotory.descriptions = descriptions
+        repotory.repoPrivate = repo_private
     }
     
     /// Save Research
@@ -356,7 +357,7 @@ extension ViewModel{
          }
         for repotry in items{
             if self.Repositories.filter({$0.id == repotry.node_id}).isEmpty{
-                self.saveRepository(id: repotry.node_id, name: repotry.name, site: repotry.html_url,language: repotry.language,descriptions: repotry.description)
+                self.saveRepository(id: repotry.node_id, name: repotry.name, site: repotry.html_url,language: repotry.language,descriptions: repotry.description, repo_private: repotry.repo_private)
             }
         }
     }
@@ -368,6 +369,7 @@ extension ViewModel{
                 repo.site = repotry.html_url
                 repo.language = repotry.language
                 repo.descriptions = repotry.description
+                repo.repoPrivate = repotry.repo_private
             }
         }
     }
@@ -496,6 +498,95 @@ extension ViewModel{
                     }
                 case .failure(let error):
                     print("Issues get Error : \(error.localizedDescription)")
+                }
+            })
+        }
+    }
+    
+    func getGist(completion : @escaping ([Gist])->()){
+        if let user = UserInfo{
+            let header : HTTPHeaders = [.accept("application/vnd.github.v3+json"),.authorization("token "+user.access_token)]
+            let parameters : Parameters = [:]
+            AF.request("https://api.github.com/gists",method: .get,parameters: parameters, headers: header).responseJSON(completionHandler: { (response) in
+                switch response.result{
+                case .success(let value):
+                    do{
+                        let data = try JSONSerialization.data(withJSONObject: value, options: .prettyPrinted)
+                        let gists = try JSONDecoder().decode([Gist].self, from: data)
+                        completion(gists)
+                    }catch let error{
+                        print("error to decode gists : \(error.localizedDescription)")
+                    }
+                case .failure(let error):
+                    print("error to parse gists : \(error.localizedDescription)")
+                }
+            })
+        }
+    }
+    func deleteGist(_ id : String){
+        if let user = UserInfo{
+            let header : HTTPHeaders = [.accept("application/vnd.github.v3+json"),.authorization("token "+user.access_token)]
+            let parameters : Parameters = [:]
+            AF.request("https://api.github.com/gists/\(id)",method: .delete,parameters: parameters, headers: header).responseData(completionHandler: { result in
+                if let data = result.data{
+                   // print(String(data: data, encoding: .utf8))
+                }
+            })
+        }
+    }
+    
+    func getCommits(repository : Repository ,completion : @escaping ([GitCommits])->()){
+        if let user = UserInfo{
+            let header : HTTPHeaders = [.accept("application/vnd.github.v3+json"),.authorization("token "+user.access_token)]
+            let parameters : Parameters = [:]
+            AF.request("https://api.github.com/repos/\(user.user_name)/\(repository.name ?? "")/commits",method: .get,parameters: parameters,headers: header).responseJSON(completionHandler: { response in
+                switch response.result{
+                case .success(let value):
+                    if let data = try? JSONSerialization.data(withJSONObject: value, options: .prettyPrinted){
+                        if let result = try? JSONDecoder().decode([GitCommits].self, from: data){
+                            completion(result)
+                        }
+                    }
+                case .failure(let error):
+                    print("Error -> Commits \(error.localizedDescription)")
+                }
+            })
+        }
+    }
+    
+    func getCommitDetail(_ data : GitCommits,completion : @escaping (GitCommitsChange)->()){
+        if let user = UserInfo{
+            let header : HTTPHeaders = [.accept("application/vnd.github.v3+json"),.authorization("token "+user.access_token)]
+            let parameters : Parameters = [:]
+            AF.request(data.url,method: .get,parameters: parameters,headers: header).responseJSON(completionHandler: { response in
+                switch response.result{
+                case .success(let value):
+                    do{
+                        let jsonData = try JSONSerialization.data(withJSONObject: value, options: .prettyPrinted)
+                        let result = try JSONDecoder().decode(GitCommitsChange.self, from: jsonData)
+                        completion(result)
+                    }catch let error{
+                        print("Error -> Decode CommitDetail : \(error.localizedDescription)")
+                    }
+                case .failure(let error):
+                    print("Error -> CommitDetail \(error.localizedDescription)")
+                }
+            })
+        }
+    }
+    
+    func getContributionGraph(completion : @escaping (Image)->()){
+        if let user = UserInfo{
+            let header : HTTPHeaders = [:]
+            let parameters : Parameters = [:]
+            AF.request("https://ghchart.rshah.org/\(user.user_name)",method: .get,parameters: parameters,headers: header).responseData(completionHandler: { response in
+                switch response.result{
+                case .success(let value):
+                    guard let img = NSImage(data: value) else {print("Errror NSImage")
+                        return}
+                    completion(Image(nsImage: img))
+                case .failure(let error):
+                    print("GraphError : \(error.localizedDescription)")
                 }
             })
         }
