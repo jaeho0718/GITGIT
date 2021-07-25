@@ -63,7 +63,7 @@ struct CodeReviews : View{
                 AddReviewCell(data:data,add:$addReview)
             }
             ForEach(viewmodel.CodeReviews.filter{$0.reviewID == data.reviewID}){ review in
-                ReviewCell(data: review,type: data.title ?? "")
+                ReviewCell(data: review,type: data.title ?? "").padding(.bottom,5)
             }.onDelete(perform: deleteReview)
         }.toolbar{
             ToolbarItem{
