@@ -575,18 +575,18 @@ extension ViewModel{
         }
     }
     
-    func getContributionGraph(completion : @escaping (Image)->()){
+    func getGitEvents(completion : @escaping ([GitEvent])->()){
         if let user = UserInfo{
-            let header : HTTPHeaders = [:]
+            let header : HTTPHeaders = [.accept("application/vnd.github.v3+json"),.authorization("token "+user.access_token)]
             let parameters : Parameters = [:]
-            AF.request("https://ghchart.rshah.org/\(user.user_name)",method: .get,parameters: parameters,headers: header).responseData(completionHandler: { response in
+            AF.request("https://api.github.com/users/\(user.user_name)/events",method: .get,parameters: parameters,headers: header).responseData(completionHandler: { response in
                 switch response.result{
                 case .success(let value):
-                    guard let img = NSImage(data: value) else {print("Errror NSImage")
-                        return}
-                    completion(Image(nsImage: img))
+                    if let result = try? JSONDecoder().decode([GitEvent].self, from: value){
+                        completion(result)
+                    }
                 case .failure(let error):
-                    print("GraphError : \(error.localizedDescription)")
+                    print("EventError : \(error.localizedDescription)")
                 }
             })
         }

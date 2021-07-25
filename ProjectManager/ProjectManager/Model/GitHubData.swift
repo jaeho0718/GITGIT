@@ -303,3 +303,20 @@ struct ChangedCommitFile : Codable{
     var changes : Int
     var patch : String
 }
+
+struct GitEvent : Codable{
+    var id : String
+    var type : String
+    var repo : Repository
+    var created_at : String
+    var event_public : Bool
+    enum CodingKeys : String, CodingKey{
+        case id,type,repo,created_at
+        case event_public = "public"
+    }
+    struct Repository : Codable{
+        var id : Int
+        var name : String
+        var url : String
+    }
+}
