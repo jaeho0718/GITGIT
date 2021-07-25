@@ -39,6 +39,7 @@
 		A67C5DC026ABC4AF005D2A5E /* Stars.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = A67C5DBF26ABC4AF005D2A5E /* Stars.mp4 */; };
 		A67C5DC526ABF43E005D2A5E /* IssueCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A67C5DC426ABF43E005D2A5E /* IssueCell.swift */; };
 		A67C5DC826ABF90C005D2A5E /* CommitsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A67C5DC726ABF90C005D2A5E /* CommitsView.swift */; };
+		A67DED0A26AD25050077ADB6 /* DateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A67DED0926AD25050077ADB6 /* DateModel.swift */; };
 		A681046A26A04F89004ACBAB /* StackOverFlowData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A681046926A04F89004ACBAB /* StackOverFlowData.swift */; };
 		A681046E26A0749D004ACBAB /* GroupBoxStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A681046D26A0749D004ACBAB /* GroupBoxStyle.swift */; };
 		A681047026A07C66004ACBAB /* ButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A681046F26A07C66004ACBAB /* ButtonStyle.swift */; };
@@ -53,6 +54,10 @@
 		A681048826A1C0D4004ACBAB /* KoGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = A681048726A1C0D4004ACBAB /* KoGraph.swift */; };
 		A681048A26A1C7EB004ACBAB /* KoRank.swift in Sources */ = {isa = PBXBuildFile; fileRef = A681048926A1C7EB004ACBAB /* KoRank.swift */; };
 		A681048C26A25B88004ACBAB /* GithubCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A681048B26A25B88004ACBAB /* GithubCode.swift */; };
+		A6BF562226AD736500F04CE7 /* SwiftUIX in Frameworks */ = {isa = PBXBuildFile; productRef = A6BF562126AD736500F04CE7 /* SwiftUIX */; };
+		A6BF562526AD7D4700F04CE7 /* Charts in Frameworks */ = {isa = PBXBuildFile; productRef = A6BF562426AD7D4700F04CE7 /* Charts */; };
+		A6BF562826ADA71400F04CE7 /* AsyncImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6BF562726ADA71400F04CE7 /* AsyncImage.swift */; };
+		A6BF562A26ADA7DE00F04CE7 /* Imagecash.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6BF562926ADA7DE00F04CE7 /* Imagecash.swift */; };
 		A6CEFB7E26A7B15D00543AAE /* CodeMirror-SwiftUI in Embed Frameworks */ = {isa = PBXBuildFile; productRef = A6D4C32226A67FD500831F31 /* CodeMirror-SwiftUI */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		A6CEFB8026A7B16D00543AAE /* WaterfallGrid in Frameworks */ = {isa = PBXBuildFile; productRef = A6CEFB7F26A7B16D00543AAE /* WaterfallGrid */; };
 		A6CEFB8326A7E21600543AAE /* CodeReview.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6CEFB8226A7E21600543AAE /* CodeReview.swift */; };
@@ -117,6 +122,7 @@
 		A67C5DBF26ABC4AF005D2A5E /* Stars.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = Stars.mp4; path = ../../resource/Stars.mp4; sourceTree = "<group>"; };
 		A67C5DC426ABF43E005D2A5E /* IssueCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueCell.swift; sourceTree = "<group>"; };
 		A67C5DC726ABF90C005D2A5E /* CommitsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommitsView.swift; sourceTree = "<group>"; };
+		A67DED0926AD25050077ADB6 /* DateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateModel.swift; sourceTree = "<group>"; };
 		A681046926A04F89004ACBAB /* StackOverFlowData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StackOverFlowData.swift; sourceTree = "<group>"; };
 		A681046D26A0749D004ACBAB /* GroupBoxStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupBoxStyle.swift; sourceTree = "<group>"; };
 		A681046F26A07C66004ACBAB /* ButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonStyle.swift; sourceTree = "<group>"; };
@@ -130,6 +136,8 @@
 		A681048726A1C0D4004ACBAB /* KoGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KoGraph.swift; sourceTree = "<group>"; };
 		A681048926A1C7EB004ACBAB /* KoRank.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KoRank.swift; sourceTree = "<group>"; };
 		A681048B26A25B88004ACBAB /* GithubCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GithubCode.swift; sourceTree = "<group>"; };
+		A6BF562726ADA71400F04CE7 /* AsyncImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncImage.swift; sourceTree = "<group>"; };
+		A6BF562926ADA7DE00F04CE7 /* Imagecash.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Imagecash.swift; sourceTree = "<group>"; };
 		A6CEFB8226A7E21600543AAE /* CodeReview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeReview.swift; sourceTree = "<group>"; };
 		A6D4C31C26A5C6C900831F31 /* LabelStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelStyle.swift; sourceTree = "<group>"; };
 		A6D4C32726A7105700831F31 /* Setting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Setting.swift; sourceTree = "<group>"; };
@@ -146,10 +154,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A6BF562226AD736500F04CE7 /* SwiftUIX in Frameworks */,
 				A6D4C32326A67FD500831F31 /* CodeMirror-SwiftUI in Frameworks */,
 				A681047826A16A8F004ACBAB /* Liquid in Frameworks */,
 				ECDA832F7D8EA2A5C6BA08EF /* libPods-ProjectManager.a in Frameworks */,
 				A61657C3269BDA7000D87523 /* Introspect in Frameworks */,
+				A6BF562526AD7D4700F04CE7 /* Charts in Frameworks */,
 				A607304A2699ADAE008E5438 /* SwiftSoup in Frameworks */,
 				A6CEFB8026A7B16D00543AAE /* WaterfallGrid in Frameworks */,
 				A6F1AD7226A445EE00D64404 /* HighlightedTextEditor in Frameworks */,
@@ -275,6 +285,7 @@
 				A681046926A04F89004ACBAB /* StackOverFlowData.swift */,
 				A6D4C32926A7A28100831F31 /* SettingValue.swift */,
 				A67C5DA726A98DBE005D2A5E /* FileViewModel.swift */,
+				A67DED0926AD25050077ADB6 /* DateModel.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -282,6 +293,7 @@
 		A6377E0926983BDA00A660D0 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				A6BF562626ADA70B00F04CE7 /* AsyncImage */,
 				A6D4C32626A6BFF500831F31 /* Setting */,
 				A63274C8269EBACC006FDC82 /* StartPage */,
 				A6DE8BE1269C174B0052193F /* Github */,
@@ -359,6 +371,15 @@
 			path = KoRank;
 			sourceTree = "<group>";
 		};
+		A6BF562626ADA70B00F04CE7 /* AsyncImage */ = {
+			isa = PBXGroup;
+			children = (
+				A6BF562726ADA71400F04CE7 /* AsyncImage.swift */,
+				A6BF562926ADA7DE00F04CE7 /* Imagecash.swift */,
+			);
+			path = AsyncImage;
+			sourceTree = "<group>";
+		};
 		A6CEFB8126A7E20D00543AAE /* CodeReview */ = {
 			isa = PBXGroup;
 			children = (
@@ -416,6 +437,8 @@
 				A6F1AD7126A445EE00D64404 /* HighlightedTextEditor */,
 				A6D4C32226A67FD500831F31 /* CodeMirror-SwiftUI */,
 				A6CEFB7F26A7B16D00543AAE /* WaterfallGrid */,
+				A6BF562126AD736500F04CE7 /* SwiftUIX */,
+				A6BF562426AD7D4700F04CE7 /* Charts */,
 			);
 			productName = ProjectManager;
 			productReference = A6377DEA2698214E00A660D0 /* ProjectManager.app */;
@@ -457,6 +480,9 @@
 				A6D4C31E26A65A0D00831F31 /* XCRemoteSwiftPackageReference "Highlightr" */,
 				A6D4C32126A67FD500831F31 /* XCRemoteSwiftPackageReference "CodeMirror-SwiftUI" */,
 				A67C5DAF26AA9516005D2A5E /* XCRemoteSwiftPackageReference "octokit" */,
+				A67DED0626AD197D0077ADB6 /* XCRemoteSwiftPackageReference "BarChart" */,
+				A6BF562026AD736500F04CE7 /* XCRemoteSwiftPackageReference "SwiftUIX" */,
+				A6BF562326AD7D4700F04CE7 /* XCRemoteSwiftPackageReference "swiftui-charts" */,
 			);
 			productRefGroup = A6377DEB2698214E00A660D0 /* Products */;
 			projectDirPath = "";
@@ -517,6 +543,7 @@
 				A634FC5926994DBB0009BDA2 /* AddMemoView.swift in Sources */,
 				A67C5DB626AAB573005D2A5E /* GistCell.swift in Sources */,
 				A6377E082698378600A660D0 /* RepositoryView.swift in Sources */,
+				A6BF562826ADA71400F04CE7 /* AsyncImage.swift in Sources */,
 				A6CEFB8326A7E21600543AAE /* CodeReview.swift in Sources */,
 				A681047F26A189F7004ACBAB /* Textgraph.swift in Sources */,
 				A6DE8BE0269BDF260052193F /* ListExtenstion.swift in Sources */,
@@ -551,6 +578,8 @@
 				A63274CA269EBAD9006FDC82 /* StartBackground.swift in Sources */,
 				A6377E062698353000A660D0 /* SideBar.swift in Sources */,
 				A681047226A08204004ACBAB /* TextFieldStyle.swift in Sources */,
+				A6BF562A26ADA7DE00F04CE7 /* Imagecash.swift in Sources */,
+				A67DED0A26AD25050077ADB6 /* DateModel.swift in Sources */,
 				A67C5DA826A98DBE005D2A5E /* FileViewModel.swift in Sources */,
 				A65F9F61269E507100332131 /* CustomDrag.swift in Sources */,
 				A67C5DC526ABF43E005D2A5E /* IssueCell.swift in Sources */,
@@ -798,6 +827,14 @@
 				minimumVersion = 0.11.0;
 			};
 		};
+		A67DED0626AD197D0077ADB6 /* XCRemoteSwiftPackageReference "BarChart" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/dawigr/BarChart.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.3.2;
+			};
+		};
 		A681047326A12B95004ACBAB /* XCRemoteSwiftPackageReference "PythonKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/pvieito/PythonKit";
@@ -812,6 +849,22 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 0.0.1;
+			};
+		};
+		A6BF562026AD736500F04CE7 /* XCRemoteSwiftPackageReference "SwiftUIX" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SwiftUIX/SwiftUIX";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+		A6BF562326AD7D4700F04CE7 /* XCRemoteSwiftPackageReference "swiftui-charts" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/spacenation/swiftui-charts";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
 			};
 		};
 		A6D4C31926A549AC00831F31 /* XCRemoteSwiftPackageReference "Sourceful" */ = {
@@ -876,6 +929,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A681047626A16A8F004ACBAB /* XCRemoteSwiftPackageReference "liquid" */;
 			productName = Liquid;
+		};
+		A6BF562126AD736500F04CE7 /* SwiftUIX */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A6BF562026AD736500F04CE7 /* XCRemoteSwiftPackageReference "SwiftUIX" */;
+			productName = SwiftUIX;
+		};
+		A6BF562426AD7D4700F04CE7 /* Charts */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A6BF562326AD7D4700F04CE7 /* XCRemoteSwiftPackageReference "swiftui-charts" */;
+			productName = Charts;
 		};
 		A6CEFB7F26A7B16D00543AAE /* WaterfallGrid */ = {
 			isa = XCSwiftPackageProductDependency;
