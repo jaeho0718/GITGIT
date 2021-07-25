@@ -18,7 +18,7 @@ struct SideBar: View {
                 List{
                     NavigationLink(destination: HomeView(),isActive:$home){
                         Label("Home", systemImage: "house.fill")
-                    }
+                    }.accentColor(.gray)
                     NavigationLink(destination:GithubGist()){
                         Label("GITHUB GIST", systemImage: "chevron.left.slash.chevron.right")
                     }.accentColor(.gray)

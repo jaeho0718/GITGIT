@@ -12,6 +12,10 @@ import WaterfallGrid
 struct HomeView : View {
     @EnvironmentObject var viewmodel : ViewModel
     
+    var scrollBackground : some View{
+        Image("ScrollBack").resizable().aspectRatio(contentMode: .fill).clipped()
+    }
+    
     var body: some View{
         ScrollView(.vertical){
             HStack{
@@ -182,7 +186,10 @@ struct CommitChart : View{
     @State private var entities : [Double] = []
     var body: some View{
         VStack{
-            Text("Commits").padding(.top,5).font(.callout).foregroundColor(.secondary)
+            HStack{
+                Text("Commits").bold().padding(.top,5).font(.title).padding(.leading).padding(.top,5)
+                Spacer()
+            }
             Chart(data: entities)
                 .chartStyle(
                     LineChartStyle(.quadCurve, lineColor: .green, lineWidth: 4)
@@ -256,7 +263,7 @@ struct EventCell : View{
         HStack(alignment:.center){
             Group{
                 if let url = URL(string:"https://github.com/\(event.repo.name.components(separatedBy: "/").first ?? "").png"){
-                    AsyncImage(url: url, placeholder: {Text("Test")}).frame(width:25,height:25)
+                    AsyncImage(url: url, placeholder: {Image(systemName: "person.crop.circle.fill").resizable()}).frame(width:40,height:40)
                         .clipShape(Circle())
                         .padding(.leading)
                 }
