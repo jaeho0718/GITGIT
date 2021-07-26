@@ -7,11 +7,13 @@
 
 import SwiftUI
 import MarkdownUI
+import SwiftUIX
 
 struct CommitsView: View {
     @EnvironmentObject var viewmodel : ViewModel
     var repository : Repository
     @State private var commits : [GitCommits] = []
+    @TimerState(interval: 15) var timer : Int
     var body: some View {
         List{
             if commits.isEmpty{
@@ -27,6 +29,11 @@ struct CommitsView: View {
                 commits = result
             })
         }.frame(minWidth:300,maxWidth: .infinity)
+        .onChange(of: timer, perform: { value in
+            viewmodel.getCommits(repository: repository, completion: { result in
+                commits = result
+            })
+        })
     }
 }
 

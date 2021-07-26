@@ -1,41 +1,12 @@
 //
-//  AccountView.swift
+//  Account.swift
 //  ProjectManager
 //
-//  Created by Lee Jaeho on 2021/07/09.
+//  Created by Lee Jaeho on 2021/07/26.
 //
 
+import Foundation
 import SwiftUI
-import Charts
-import WaterfallGrid
-
-struct HomeView : View {
-    @EnvironmentObject var viewmodel : ViewModel
-    
-    var scrollBackground : some View{
-        Image("ScrollBack").resizable().aspectRatio(contentMode: .fill).clipped()
-    }
-    
-    var body: some View{
-        ScrollView(.vertical){
-            HStack{
-                Account()
-                CommitChart()
-            }.padding([.leading,.trailing,.top])
-            HStack{
-                Text("Event").font(.title).bold().padding(.leading)
-                Spacer()
-            }.padding(.top,10)
-            EventView().padding([.leading,.trailing])
-        }
-    }
-}
-
-struct AccountView_Previews: PreviewProvider {
-    static var previews: some View {
-        HomeView().environmentObject(ViewModel())
-    }
-}
 
 struct Account : View{
     @EnvironmentObject var viewmodel : ViewModel
@@ -85,7 +56,7 @@ struct Account : View{
             Button(action:{
                 alert = .alerttodelete
             }){
-                Text("Remove")
+                Text("Disconnect")
                     .bold()
                     .font(.callout)
                     .foregroundColor(.white)
@@ -110,6 +81,7 @@ struct Account : View{
                 }), secondaryButton: .cancel())
             }
         })
+        
     }
     
     func setup(){
@@ -181,102 +153,8 @@ struct Account : View{
     }
 }
 
-struct CommitChart : View{
-    @EnvironmentObject var viewmodel : ViewModel
-    @State private var entities : [Double] = []
-    var body: some View{
-        VStack{
-            HStack{
-                Text("Commits").bold().padding(.top,5).font(.title).padding(.leading).padding(.top,5)
-                Spacer()
-            }
-            Chart(data: entities)
-                .chartStyle(
-                    LineChartStyle(.quadCurve, lineColor: .green, lineWidth: 4)
-                )
-                .padding([.leading,.trailing])
-        }.frame(minWidth:300,maxWidth:.infinity)
-        .background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .onAppear{createEntities()}
-    }
-    
-    func createEntities(){
-        let dateformatter = DateFormatter()
-        dateformatter.dateFormat = "YYYY-MM-dd"
-        let day = Date().get(.day)
-        let month = Date().get(.month)
-        let year = Date().get(.year)
-        var entityInfo : [Int:Int] = [:]
-        for toDay in 1...day{
-            entityInfo[toDay] = 0
-        }
-        DispatchQueue.main.async {
-            _ = viewmodel.Repositories.map({
-                viewmodel.getCommits(repository: $0, completion: { commit in
-                    for toDay in 1...day{
-                        let date = dateformatter.date(from: "\(year)-\(month)-\(toDay)")
-                        let counts = commit.filter({
-                            var commit_day : String = $0.commit.committer["date"] ?? "2021-07-24T13:09:15Z"
-                            commit_day = commit_day.components(separatedBy: "T").first ?? "2021-07-24"
-                            let commit_date = dateformatter.date(from: commit_day)
-                            return commit_date == date
-                        }).count
-                        entityInfo[toDay]! += counts
-                    }
-                    entities = []
-                    let total = Double(entityInfo.keys.reduce(0){$0+$1})/Double(entityInfo.keys.count)
-                    let sortedinfo = entityInfo.sorted(by: {$0.key < $1.key})
-                    _ = sortedinfo.map({ (key,value) in
-                        if value == 0{
-                            entities.append(0.1)
-                        }else{
-                            entities.append(Double(value)/total+0.1)
-                        }
-                    })
-                })
-            })
-        }
-    }
-}
-
-struct EventView : View{
-    @EnvironmentObject var viewmodel : ViewModel
-    @State private var events : [GitEvent] = []
-    var body: some View{
-        WaterfallGrid(events,id:\.id){ event in
-            EventCell(event: event)
-        }
-        .gridStyle(spacing: 8)
-        .onAppear{
-            viewmodel.getGitEvents(completion: { result in
-                events = result
-            })
-        }
-    }
-}
-
-struct EventCell : View{
-    var event : GitEvent
-    @EnvironmentObject var viewmodel : ViewModel
-    var body: some View{
-        HStack(alignment:.center){
-            Group{
-                if let url = URL(string:"https://github.com/\(event.repo.name.components(separatedBy: "/").first ?? "").png"){
-                    AsyncImage(url: url, placeholder: {Image(systemName: "person.crop.circle.fill").resizable()}).frame(width:40,height:40)
-                        .clipShape(Circle())
-                        .padding(.leading)
-                }
-                Text(event.repo.name.components(separatedBy: "/").last ?? "").bold()
-                Spacer()
-            }.frame(width:100)
-            Divider()
-            Spacer()
-            Text(event.type).bold().foregroundColor(.secondary)
-            Spacer()
-        }
-        .frame(maxWidth:.infinity,minHeight:50,maxHeight:60)
-        .background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+struct Account_Previews: PreviewProvider {
+    static var previews: some View {
+        Account().environmentObject(ViewModel())
     }
 }
