@@ -13,25 +13,65 @@ struct CommitsView: View {
     @EnvironmentObject var viewmodel : ViewModel
     var repository : Repository
     @State private var commits : [GitCommits] = []
-    @TimerState(interval: 15) var timer : Int
-    var body: some View {
+    @State private var updatedDate : String = ""
+    @State private var selectedCommit : GitCommits?
+    @State private var showDetail : Bool = false
+    var dateFormat : DateFormatter{
+        let format = DateFormatter()
+        format.dateFormat = "YYYY.MM.dd HH:mm"
+        return format
+    }
+    @TimerState(interval: 60) var timer : Int
+    
+    var botttomBar : some View{
+        GeometryReader{ geomtry in
+            VStack(alignment:.leading,spacing:0){
+                HStack{
+                    Text("Commit : \(commits.count)").font(.caption2).padding(.leading,5)
+                    Spacer()
+                    Text("업데이트 : \(updatedDate)").font(.caption2).padding(.trailing,5)
+                }.frame(height:20).background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow))
+                if let commit = selectedCommit,showDetail{
+                    CommitDetail(commit: commit).frame(width:geomtry.size.width,height: geomtry.size.height-20)
+                }
+            }.frame(width: geomtry.size.width)
+            .onChange(of: geomtry.size.height, perform: { value in
+                if geomtry.size.height < 60{
+                    showDetail = false
+                }else{
+                    showDetail = true
+                }
+            })
+        }
+    }
+    
+    var topBar : some View{
         List{
             if commits.isEmpty{
                 EmptyCommit()
             }else{
                 ForEach(commits,id:\.sha){ commit in
-                    CommitCell(commits: commit)
+                    CommitCell(selectedCommit: $selectedCommit, commits: commit)
                     Divider()
                 }
             }
+        }
+    }
+    
+    var body: some View {
+        VSplitView{
+            topBar
+            botttomBar.frame(minHeight:20)
         }.onAppear{
             viewmodel.getCommits(repository: repository, completion: { result in
                 commits = result
+                updatedDate = dateFormat.string(from: Date())
             })
-        }.frame(minWidth:300,maxWidth: .infinity)
+        }
         .onChange(of: timer, perform: { value in
             viewmodel.getCommits(repository: repository, completion: { result in
                 commits = result
+                updatedDate = dateFormat.string(from: Date())
             })
         })
     }
@@ -39,29 +79,19 @@ struct CommitsView: View {
 
 struct CommitCell : View{
     @EnvironmentObject var viewmodel : ViewModel
-    @State private var showDetail : Bool = false
+    @Binding var selectedCommit : GitCommits?
     var commits : GitCommits
     var commit : GitCommit{
         return commits.commit
     }
     var body: some View{
-        VStack{
-            HStack{
-                Text(commit.committer["name"] ?? "Null").frame(width:100)
-                Divider()
-                Button(action:{
-                    showDetail.toggle()
-                }){
-                    Image(systemName: showDetail ? "chevron.up.square.fill" : "chevron.down.square.fill")
-                }.buttonStyle(RemoveBackgroundStyle())
-                Text(commit.message).font(.body).foregroundColor(.secondary)
-                Spacer()
-                Text(commit.committer["date"] ?? "Null").font(.callout).foregroundColor(.gray)
-            }
-            if showDetail{
-                Divider()
-                CommitDetail(commit: commits)
-            }
+        HStack{
+            Text(commit.committer["name"] ?? "Null").frame(width:100)
+            Divider()
+            Text(commit.message).font(.body).foregroundColor(.secondary).frame(maxWidth:.infinity)
+            Text(commit.committer["date"] ?? "Null").font(.callout).foregroundColor(.gray).frame(width: 150)
+        }.onTapGesture {
+            selectedCommit = commits
         }
     }
 }
@@ -96,11 +126,12 @@ struct CommitDetail : View{
     }
     
     var body: some View{
-        HSplitView{
-            title.frame(minWidth:200,maxHeight: .infinity)
-            change.frame(minWidth:200,maxHeight: .infinity)
+        GeometryReader{ geomtry in
+            HStack{
+                title.frame(width: 150)
+                change.frame(width: geomtry.size.width-150)
+            }
         }
-        .frame(maxWidth:.infinity,minHeight:450,maxHeight: .infinity)
         .onAppear{
             viewmodel.getCommitDetail(commit, completion: { result in
                 detail = result
@@ -108,36 +139,30 @@ struct CommitDetail : View{
         }.onDisappear{
             detail = nil
         }
+        .onChange(of: commit, perform: { value in
+            detail = nil
+            viewmodel.getCommitDetail(commit, completion: { result in
+                detail = result
+            })
+        })
     }
 }
 
 struct CommitDetailCell : View{
     var file : ChangedCommitFile
     @State private var showDetail : Bool = true
-    /*
-     private let nextPlus = try! NSRegularExpression(pattern: "_[^_]+_", options: [])
-     private var rule : [HighlightRule]{
-         return [HighlightRule(pattern: nextPlus, formattingRules: [
-             TextFormattingRule(fontTraits: [.bold]),
-             TextFormattingRule(key: .foregroundColor,value: NSColor.blue)
-         ])]
-     }
-     */
     var body: some View{
         GroupBox(label:Label(title: {Text("파일이름 : \(file.filename)")}, icon: {})){
             HStack(alignment:.bottom){
-                Text("추가 : \(file.additions)").bold().foregroundColor(.blue)
-                Text("삭제 : \(file.deletions)").bold().foregroundColor(.red)
-                Text("변경 : \(file.deletions)").bold().foregroundColor(.green)
+                Text("추가 : \(file.additions)").bold().foregroundColor(.secondary)
+                Text("삭제 : \(file.deletions)").bold().foregroundColor(.secondary)
+                Text("변경 : \(file.deletions)").bold().foregroundColor(.secondary)
             }.font(.body)
             if showDetail{
-                //HighlightedTextEditor(text: .constant(file.patch), highlightRules: rule).frame(minHeight:300)
-                Markdown("\(file.patch)").background(VisualEffectView(material: .popover, blendingMode: .withinWindow))
+                PatchTextView(patch: file.patch)
             }else{
                 Text("Tap to show more").foregroundColor(.secondary)
             }
-            //CodeView(theme:  colorScheme == .dark ? SettingValue.getTheme(viewmodel.settingValue.code_type_dark) : SettingValue.getTheme(viewmodel.settingValue.code_type_light), code: .constant(file.patch), mode: FileType.getType(file.filename).code_mode.mode(), fontSize: 12, showInvisibleCharacters: true, lineWrapping: true)
-                //.frame(minHeight:400).allowsTightening(false)
         }.groupBoxStyle(IssueGroupBoxStyle())
         .onTapGesture {
             showDetail.toggle()
@@ -179,3 +204,69 @@ struct EmptyCommit : View{
     }
 }
 
+struct PatchTextView : View{
+    
+    var patch : String
+    var codes : [CodeType]{
+        let strings = patch.components(separatedBy: "\n")
+        var items : [CodeType] = []
+        var number : Int = 0
+        for code in strings{
+            if let index = code.firstIndex(of: "+"),index == code.startIndex{
+                var editableCode = code
+                //let editedCode = editableCode.removeFirst()
+                items.append(CodeType(number: number, code: editableCode, type: .add))
+            }else if let index = code.firstIndex(of: "-"),index == code.startIndex{
+                var editableCode = code
+                //let editedCode = editableCode.removeFirst()
+                items.append(CodeType(number: number, code: editableCode, type: .delete))
+            }else{
+                var editableCode = code
+                //let editedCode = editableCode.removeFirst()
+                items.append(CodeType(number: number, code: editableCode, type: .normal))
+            }
+            number += 1
+        }
+        return items
+    }
+    var body: some View{
+        VStack(alignment:.leading,spacing:1){
+            ForEach(codes,id:\.number){ code in
+                Text(code.code)
+                    .foregroundColor(code.fontColor)
+                    .background(Rectangle().frame(maxWidth:.infinity).foregroundColor(code.backColor).opacity(0.1))
+            }
+        }.onAppear{
+            //print(codes)
+        }
+    }
+    
+    struct CodeType{
+        var number : Int
+        var code : String
+        var type : type
+        var backColor : Color{
+            switch self.type {
+            case .add:
+                return .green
+            case .delete:
+                return .red
+            case .normal:
+                return .clear
+            }
+        }
+        var fontColor : Color{
+            switch self.type {
+            case .add:
+                return .green
+            case .delete:
+                return .red
+            case .normal:
+                return .secondary
+            }
+        }
+        enum type{
+            case add,delete,normal
+        }
+    }
+}

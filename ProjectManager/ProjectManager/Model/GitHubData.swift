@@ -277,7 +277,10 @@ struct GistOwner : Codable{
     var login : String
 }
 
-struct GitCommits : Codable{
+struct GitCommits : Codable,Equatable{
+    static func == (lhs: GitCommits, rhs: GitCommits) -> Bool {
+        return lhs.sha == rhs.sha
+    }
     var sha : String
     var node_id : String
     var url : String

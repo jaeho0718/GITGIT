@@ -124,11 +124,7 @@ struct ReviewCell : View{
     @State private var uploadGist : Bool = false
     var data : CodeComment
     var type : String
-    var keyword : String{
-        let ko_word = KoRank(data.review ?? "")
-        let result = ko_word.run()
-        return result.keyword
-    }
+    @State private var keyword : String = ""
     var body: some View{
         VStack{
             HStack(alignment:.bottom){
@@ -156,6 +152,11 @@ struct ReviewCell : View{
         }.padding(5).background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow)).clipShape(RoundedRectangle(cornerRadius: 10))
         .sheet(isPresented: $uploadGist, content: {
             GistUploadView(show: $uploadGist,title:type, comment: data)
-        })
+        }).onAppear{
+            let ko_word = KoRank(data.review ?? "")
+            ko_word.run({ result in
+                keyword = result.keyword
+            })
+        }
     }
 }

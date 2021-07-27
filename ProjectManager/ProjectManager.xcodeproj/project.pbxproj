@@ -31,7 +31,7 @@
 		A6377E032698216500A660D0 /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = A6377DFF2698216500A660D0 /* Model.xcdatamodeld */; };
 		A6377E062698353000A660D0 /* SideBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6377E052698353000A660D0 /* SideBar.swift */; };
 		A6377E082698378600A660D0 /* RepositoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6377E072698378600A660D0 /* RepositoryView.swift */; };
-		A6377E0B26983BF700A660D0 /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6377E0A26983BF700A660D0 /* AccountView.swift */; };
+		A6377E0B26983BF700A660D0 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6377E0A26983BF700A660D0 /* HomeView.swift */; };
 		A65F9F61269E507100332131 /* CustomDrag.swift in Sources */ = {isa = PBXBuildFile; fileRef = A65F9F60269E507100332131 /* CustomDrag.swift */; };
 		A67C5DA826A98DBE005D2A5E /* FileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A67C5DA726A98DBE005D2A5E /* FileViewModel.swift */; };
 		A67C5DAE26AA7519005D2A5E /* GithubGist.swift in Sources */ = {isa = PBXBuildFile; fileRef = A67C5DAD26AA7519005D2A5E /* GithubGist.swift */; };
@@ -58,6 +58,9 @@
 		A6BF562526AD7D4700F04CE7 /* Charts in Frameworks */ = {isa = PBXBuildFile; productRef = A6BF562426AD7D4700F04CE7 /* Charts */; };
 		A6BF562826ADA71400F04CE7 /* AsyncImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6BF562726ADA71400F04CE7 /* AsyncImage.swift */; };
 		A6BF562A26ADA7DE00F04CE7 /* Imagecash.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6BF562926ADA7DE00F04CE7 /* Imagecash.swift */; };
+		A6BF562D26AE45FD00F04CE7 /* CommitChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6BF562C26AE45FD00F04CE7 /* CommitChart.swift */; };
+		A6BF562F26AE463000F04CE7 /* Account.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6BF562E26AE463000F04CE7 /* Account.swift */; };
+		A6BF563126AE464E00F04CE7 /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6BF563026AE464E00F04CE7 /* Event.swift */; };
 		A6CEFB7E26A7B15D00543AAE /* CodeMirror-SwiftUI in Embed Frameworks */ = {isa = PBXBuildFile; productRef = A6D4C32226A67FD500831F31 /* CodeMirror-SwiftUI */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		A6CEFB8026A7B16D00543AAE /* WaterfallGrid in Frameworks */ = {isa = PBXBuildFile; productRef = A6CEFB7F26A7B16D00543AAE /* WaterfallGrid */; };
 		A6CEFB8326A7E21600543AAE /* CodeReview.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6CEFB8226A7E21600543AAE /* CodeReview.swift */; };
@@ -114,7 +117,7 @@
 		A6377E002698216500A660D0 /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
 		A6377E052698353000A660D0 /* SideBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideBar.swift; sourceTree = "<group>"; };
 		A6377E072698378600A660D0 /* RepositoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepositoryView.swift; sourceTree = "<group>"; };
-		A6377E0A26983BF700A660D0 /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
+		A6377E0A26983BF700A660D0 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		A65F9F60269E507100332131 /* CustomDrag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomDrag.swift; sourceTree = "<group>"; };
 		A67C5DA726A98DBE005D2A5E /* FileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileViewModel.swift; sourceTree = "<group>"; };
 		A67C5DAD26AA7519005D2A5E /* GithubGist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GithubGist.swift; sourceTree = "<group>"; };
@@ -138,6 +141,9 @@
 		A681048B26A25B88004ACBAB /* GithubCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GithubCode.swift; sourceTree = "<group>"; };
 		A6BF562726ADA71400F04CE7 /* AsyncImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncImage.swift; sourceTree = "<group>"; };
 		A6BF562926ADA7DE00F04CE7 /* Imagecash.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Imagecash.swift; sourceTree = "<group>"; };
+		A6BF562C26AE45FD00F04CE7 /* CommitChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommitChart.swift; sourceTree = "<group>"; };
+		A6BF562E26AE463000F04CE7 /* Account.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Account.swift; sourceTree = "<group>"; };
+		A6BF563026AE464E00F04CE7 /* Event.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
 		A6CEFB8226A7E21600543AAE /* CodeReview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeReview.swift; sourceTree = "<group>"; };
 		A6D4C31C26A5C6C900831F31 /* LabelStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelStyle.swift; sourceTree = "<group>"; };
 		A6D4C32726A7105700831F31 /* Setting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Setting.swift; sourceTree = "<group>"; };
@@ -202,7 +208,6 @@
 			children = (
 				A6377E072698378600A660D0 /* RepositoryView.swift */,
 				A6377E052698353000A660D0 /* SideBar.swift */,
-				A6377E0A26983BF700A660D0 /* AccountView.swift */,
 			);
 			path = Main;
 			sourceTree = "<group>";
@@ -293,6 +298,7 @@
 		A6377E0926983BDA00A660D0 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				A6BF562B26AE45EE00F04CE7 /* Home */,
 				A6BF562626ADA70B00F04CE7 /* AsyncImage */,
 				A6D4C32626A6BFF500831F31 /* Setting */,
 				A63274C8269EBACC006FDC82 /* StartPage */,
@@ -378,6 +384,17 @@
 				A6BF562926ADA7DE00F04CE7 /* Imagecash.swift */,
 			);
 			path = AsyncImage;
+			sourceTree = "<group>";
+		};
+		A6BF562B26AE45EE00F04CE7 /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				A6377E0A26983BF700A660D0 /* HomeView.swift */,
+				A6BF562C26AE45FD00F04CE7 /* CommitChart.swift */,
+				A6BF562E26AE463000F04CE7 /* Account.swift */,
+				A6BF563026AE464E00F04CE7 /* Event.swift */,
+			);
+			path = Home;
 			sourceTree = "<group>";
 		};
 		A6CEFB8126A7E20D00543AAE /* CodeReview */ = {
@@ -537,6 +554,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				A634FC572699445F0009BDA2 /* CheckBoxToggle.swift in Sources */,
+				A6BF562F26AE463000F04CE7 /* Account.swift in Sources */,
+				A6BF562D26AE45FD00F04CE7 /* CommitChart.swift in Sources */,
 				A6F1AD6F26A431E600D64404 /* MarkDownEditor.swift in Sources */,
 				A6377DF02698214E00A660D0 /* ContentView.swift in Sources */,
 				A6D7507826A5220000FB611D /* CodeWebView.swift in Sources */,
@@ -557,6 +576,7 @@
 				A63274CC269EC9F0006FDC82 /* ShowFunctions.swift in Sources */,
 				A67C5DC826ABF90C005D2A5E /* CommitsView.swift in Sources */,
 				A6377E032698216500A660D0 /* Model.xcdatamodeld in Sources */,
+				A6BF563126AE464E00F04CE7 /* Event.swift in Sources */,
 				A6D4C32826A7105700831F31 /* Setting.swift in Sources */,
 				A681048826A1C0D4004ACBAB /* KoGraph.swift in Sources */,
 				A607304C2699D9D6008E5438 /* MemoDetailView.swift in Sources */,
@@ -565,7 +585,7 @@
 				A63274C6269EB649006FDC82 /* StartView.swift in Sources */,
 				A6073053269AA808008E5438 /* FolderListStyle.swift in Sources */,
 				A67C5DAE26AA7519005D2A5E /* GithubGist.swift in Sources */,
-				A6377E0B26983BF700A660D0 /* AccountView.swift in Sources */,
+				A6377E0B26983BF700A660D0 /* HomeView.swift in Sources */,
 				A6D4C31D26A5C6C900831F31 /* LabelStyle.swift in Sources */,
 				A6377E022698216500A660D0 /* ViewModel.swift in Sources */,
 				A634FC55269936AD0009BDA2 /* GitubPage.swift in Sources */,
@@ -717,7 +737,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_ASSET_PATHS = "\"ProjectManager/Preview Content\"";
 				DEVELOPMENT_TEAM = 88DQM3PTQR;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -728,7 +748,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.tistory.leeprogrammerlabatory.ProjectManager;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -745,7 +765,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_ASSET_PATHS = "\"ProjectManager/Preview Content\"";
 				DEVELOPMENT_TEAM = 88DQM3PTQR;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -756,7 +776,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.tistory.leeprogrammerlabatory.ProjectManager;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;

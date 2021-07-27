@@ -8,10 +8,12 @@
 import Foundation
 import SwiftUI
 import WaterfallGrid
+import SwiftUIX
 
 struct EventView : View{
     @EnvironmentObject var viewmodel : ViewModel
     @State private var events : [GitEvent] = []
+    @TimerState(interval: 60) var timer : Int
     var editedEvent : [GitEvent]{
         if events.count < 8 {
             return events
@@ -28,7 +30,11 @@ struct EventView : View{
             viewmodel.getGitEvents(completion: { result in
                 events = result
             })
-        }
+        }.onChange(of: timer, perform: { value in
+            viewmodel.getGitEvents(completion: { result in
+                events = result
+            })
+        })
     }
 }
 

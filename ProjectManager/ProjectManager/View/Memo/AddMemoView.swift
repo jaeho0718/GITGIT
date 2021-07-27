@@ -156,7 +156,9 @@ struct URLCell : View{
                 Text(site_name).padding(.leading,3)
                 Spacer()
             }.frame(maxWidth:.infinity)
-        }.onAppear{
+        }
+        .groupBoxStyle(LinkGroupBoxStyle())
+        .onAppear{
             research.getSiteName(completion: { title in
                 site_name = title
             })

@@ -68,7 +68,6 @@ struct CommitChart : View{
                             entities.append(Double(value)/total+0.1)
                         }
                     })
-                    print(entities)
                 })
             })
         }

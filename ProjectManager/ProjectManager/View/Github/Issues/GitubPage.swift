@@ -7,12 +7,14 @@
 
 import SwiftUI
 import MarkdownUI
+import SwiftUIX
 
 struct GitubPage: View {
     @EnvironmentObject var viewmodel : ViewModel
     var repository : Repository
     @State private var add_issue : Bool = false
     @State private var issues : [Issues] = []
+    @TimerState(interval: 60) var timer : Int
     var body: some View {
         VStack(alignment:.leading,spacing:0){
             HStack(alignment:.center){
@@ -62,6 +64,9 @@ struct GitubPage: View {
                 Label(add_issue ? "Cancel" : "NewIssue", systemImage: add_issue ? "xmark.square" : "plus.app")
             }
         }
+        .onChange(of: timer, perform: { value in
+            setValue()
+        })
     }
     func setValue(){
         DispatchQueue.main.async {
