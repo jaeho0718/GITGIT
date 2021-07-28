@@ -289,7 +289,7 @@ extension ViewModel{
         }
     }
     
-    func getGitFiles(_ repository : Repository,path : String = "",completion : @escaping ([GitFile])->()){
+    func getGitFiles(_ repository : Repository,path : String = "",completion : @escaping ([GitFile])->(),failer : @escaping ()->() = {}){
         if let user = self.UserInfo{
             let header : HTTPHeaders = [.accept("application/vnd.github.v3+json"),.authorization("token "+user.access_token)]
             let parameters : Parameters = [:]
@@ -301,10 +301,10 @@ extension ViewModel{
                         let files = try JSONDecoder().decode([GitFile].self, from: data)
                         completion(files)
                     }catch{
-                        completion([])
+                        failer()
                     }
                 case .failure(let error):
-                    completion([])
+                    failer()
                     print("Error to load gitfiles :\(error.localizedDescription)")
                 }
             })
@@ -406,11 +406,16 @@ extension ViewModel{
             }
         }
     }
+    
+    func editIssues(repo : Repository,issue : Issues){
+        
+    }
+    
     /// Return Issues throughout complication parameter
-    func getIssues(_ info : User?,repo : Repository,complication: @escaping ([Issues])->()){
+    func getIssues(_ info : User?,repo : Repository,complication: @escaping ([Issues])->(),failer : @escaping ()->() = {}){
         if let user = info{
             let header : HTTPHeaders = [.accept("application/vnd.github.v3+json"),.authorization("token "+user.access_token)]
-            let parameters : Parameters = [:]
+            let parameters : Parameters = ["state":"all"]
             AF.request("https://api.github.com/repos/\(user.user_name)/\(repo.name ?? "")/issues", method: .get, parameters: parameters, encoding: URLEncoding.default, headers: header).responseJSON(completionHandler: { (response) in
                 switch response.result{
                 case .success(let value):
@@ -419,9 +424,11 @@ extension ViewModel{
                         let repos = try JSONDecoder().decode([Issues].self, from: data)
                         complication(repos)
                     }catch let error{
+                        failer()
                         print("Fail to change issue to json : \(error.localizedDescription)")
                     }
                 case .failure(let error):
+                    failer()
                     print("Issues get Error : \(error.localizedDescription)")
                 }
             })
@@ -535,7 +542,7 @@ extension ViewModel{
         }
     }
     
-    func getCommits(repository : Repository ,completion : @escaping ([GitCommits])->()){
+    func getCommits(repository : Repository ,completion : @escaping ([GitCommits])->(),failer : @escaping ()->() = {}){
         if let user = UserInfo{
             let header : HTTPHeaders = [.accept("application/vnd.github.v3+json"),.authorization("token "+user.access_token)]
             let parameters : Parameters = [:]
@@ -545,16 +552,21 @@ extension ViewModel{
                     if let data = try? JSONSerialization.data(withJSONObject: value, options: .prettyPrinted){
                         if let result = try? JSONDecoder().decode([GitCommits].self, from: data){
                             completion(result)
+                        }else{
+                            failer()
                         }
+                    }else{
+                        failer()
                     }
                 case .failure(let error):
+                    failer()
                     print("Error -> Commits \(error.localizedDescription)")
                 }
             })
         }
     }
     
-    func getCommitDetail(_ data : GitCommits,completion : @escaping (GitCommitsChange)->()){
+    func getCommitDetail(_ data : GitCommits,completion : @escaping (GitCommitsChange)->(),failer : @escaping ()->() = {}){
         if let user = UserInfo{
             let header : HTTPHeaders = [.accept("application/vnd.github.v3+json"),.authorization("token "+user.access_token)]
             let parameters : Parameters = [:]
@@ -567,9 +579,11 @@ extension ViewModel{
                         completion(result)
                     }catch let error{
                         print("Error -> Decode CommitDetail : \(error.localizedDescription)")
+                        failer()
                     }
                 case .failure(let error):
                     print("Error -> CommitDetail \(error.localizedDescription)")
+                    failer()
                 }
             })
         }

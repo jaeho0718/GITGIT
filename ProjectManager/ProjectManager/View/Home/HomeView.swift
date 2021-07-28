@@ -11,7 +11,9 @@ struct HomeView : View {
     @EnvironmentObject var viewmodel : ViewModel
     
     var scrollBackground : some View{
-        Image("ScrollBack").resizable().aspectRatio(contentMode: .fill).clipped()
+        AsyncImage(url: URL(string: "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg")!, placeholder: {
+            
+        }).clipped()
     }
     
     var body: some View{
@@ -25,7 +27,7 @@ struct HomeView : View {
                 Spacer()
             }.padding(.top,10)
             EventView().padding([.leading,.trailing])
-        }
+        }//.background(scrollBackground)
     }
 }
 

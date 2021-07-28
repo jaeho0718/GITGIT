@@ -28,7 +28,6 @@ struct ProjectManagerApp: App {
             }
             //ContentView().environmentObject(viewmodel)
         }.onChange(of: scenePhase, perform: { value in
-            print(value)
             if value == .active{
                 if UserDefaults.standard.bool(forKey: "start"){
                     start = .content

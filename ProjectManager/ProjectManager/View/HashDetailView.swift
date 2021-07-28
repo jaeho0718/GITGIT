@@ -28,9 +28,7 @@ struct LinkCell : View{
     var data : Site
     var body: some View{
         GroupBox{
-            HStack{
-                Text(data.name ?? "이름을 불러올 수 없음")
-            }.frame(maxWidth:.infinity)
+            Text(data.name ?? "이름을 불러올 수 없음").frame(maxWidth:.infinity)
         }.groupBoxStyle(LinkGroupBoxStyle())
         .onTapGesture {
             if let url = URL(string: data.url ?? ""){

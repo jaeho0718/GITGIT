@@ -57,6 +57,11 @@ struct Issues : Codable,Identifiable{
     var updated_at : String?
     var comments : Int
     var body : String
+    var state : issue_state.RawValue
+    enum issue_state : String,Codable{
+        case open = "open"
+        case closed = "closed"
+    }
 }
 
 struct Assignee : Codable{
@@ -295,7 +300,7 @@ struct GitCommit : Codable{
 }
 
 struct GitCommitsChange : Codable{
-    var files : [ChangedCommitFile]
+    var files : [ChangedCommitFile]?
 }
 
 struct ChangedCommitFile : Codable{

@@ -130,7 +130,6 @@ struct UrlDrop : DropDelegate{
                         let url = NSURL(absoluteURLWithDataRepresentation: data, relativeTo: nil) as URL
                         //print(url.absoluteString)
                         //print(url.absoluteString)
-                        print(url.absoluteURL.absoluteString)
                         if edit{
                             researches.append(Research_Info(url_str: url.absoluteString))
                         }else{

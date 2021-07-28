@@ -54,14 +54,16 @@ extension KoWord{
     
     /// Toknization body
     /// - Parameter body :  put string
-    static func getToken(_ body : String,native : Bool = true ,language : textRank_Language = .Korean,completion: @escaping ([String])->()){
+    static func getToken(_ body : String,native : Bool ,language : textRank_Language = .Korean,completion: @escaping ([String])->()){
         if native{
             let tagger = NLTagger(tagSchemes: [.tokenType])
             var tokens : [String] = []
-            tagger.string = body
-            tagger.enumerateTags(in: body.startIndex ..< body.endIndex, unit: .word, scheme: .tokenType , options: [.omitPunctuation,.omitWhitespace]){ (tag,range) -> Bool in
+            var newBody = body.lowercased()
+            newBody.removeAll(where: {$0 == "*" || $0 == "#" || $0 == ","})
+            tagger.string = newBody
+            tagger.enumerateTags(in: newBody.startIndex ..< newBody.endIndex, unit: .word, scheme: .tokenType , options: [.omitPunctuation,.omitWhitespace]){ (tag,range) -> Bool in
                 if tag == .word{
-                    let str = String(body[range])
+                    let str = String(newBody[range])
                     switch language{
                     case .English:
                         if !(Stopwords.English.contains(str)){
@@ -77,42 +79,45 @@ extension KoWord{
             }
             completion(tokens)
         }else{
+            guard let url = URL(string: "http://aiopen.etri.re.kr:8000/WiseNLU") else {return}
+            let requestData = morphologyRequest(request_id: "reserved field", access_key: "2b363e71-71a4-4e13-aeae-25d156d9b892", argument: morphologyArgument(analysis_code: "morp", text: body))
+            let noun_type = ["NNG","NNP","NP","VV"]
+            var tokens : [String] = []
             do{
-                let httpbody = try JSONEncoder().encode(morphologyRequest(argument: morphologyArgument(analysis_code: "morp", text: body)))
-                guard let url = URL(string: "http://aiopen.etri.re.kr:8000/WiseNLU") else {return}
+                let encodedData = try JSONEncoder().encode(requestData)
                 var request = URLRequest(url: url)
+                request.httpBody = encodedData
                 request.httpMethod = "POST"
-                request.httpBody = httpbody
-                URLSession.shared.dataTask(with: request){ data,response,error in
-                    if let error = error{
-                        print("nonative error : \(error.localizedDescription)")
-                    }
-                    if let DATA = data{
-                        if let result = try? JSONDecoder().decode(morphologyResult.self, from: DATA){
-                            var tokens : [String] = []
-                            for sentence in result.return_object.sentence{
+                let task = URLSession.shared.dataTask(with: request){ (data,response,error) in
+                    if let data = data{
+                        //print(String(data: data, encoding: .utf8))
+                        if let decode_result = try? JSONDecoder().decode(morphologyResult.self, from: data){
+                            for sentence in decode_result.return_object.sentence{
                                 for morp in sentence.morp{
-                                    if morp.type == "NNG"{
+                                    if noun_type.contains(morp.type){
+                                        //print("type : \(morp.type), lemma : \(morp.lemma)")
                                         tokens.append(morp.lemma)
                                     }
                                 }
                             }
                             completion(tokens)
                         }else{
-                            print("ERROR")
+                            
+                            print("Error to load Morp")
                         }
                     }
                 }
+                task.resume()
             }catch{
-                //completion([])
+                print(error.localizedDescription)
             }
         }
     }
 }
 
 struct morphologyRequest : Codable{
-    //var request_id : String = "reserved field"
-    var access_key : String = "api key"
+    var request_id : String
+    var access_key : String
     var argument : morphologyArgument
 }
 

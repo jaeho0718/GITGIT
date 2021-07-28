@@ -69,6 +69,7 @@
 		A6D4C32826A7105700831F31 /* Setting.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6D4C32726A7105700831F31 /* Setting.swift */; };
 		A6D4C32A26A7A28100831F31 /* SettingValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6D4C32926A7A28100831F31 /* SettingValue.swift */; };
 		A6D7507826A5220000FB611D /* CodeWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6D7507726A5220000FB611D /* CodeWebView.swift */; };
+		A6D8B15126B02A2400E56D90 /* CustomOvelay.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6D8B15026B02A2400E56D90 /* CustomOvelay.swift */; };
 		A6DE8BE0269BDF260052193F /* ListExtenstion.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6DE8BDF269BDF260052193F /* ListExtenstion.swift */; };
 		A6DE8BE3269C19040052193F /* GithubWeb.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6DE8BE2269C19040052193F /* GithubWeb.swift */; };
 		A6F1AD6F26A431E600D64404 /* MarkDownEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F1AD6E26A431E600D64404 /* MarkDownEditor.swift */; };
@@ -149,6 +150,7 @@
 		A6D4C32726A7105700831F31 /* Setting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Setting.swift; sourceTree = "<group>"; };
 		A6D4C32926A7A28100831F31 /* SettingValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingValue.swift; sourceTree = "<group>"; };
 		A6D7507726A5220000FB611D /* CodeWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeWebView.swift; sourceTree = "<group>"; };
+		A6D8B15026B02A2400E56D90 /* CustomOvelay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomOvelay.swift; sourceTree = "<group>"; };
 		A6DE8BDF269BDF260052193F /* ListExtenstion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListExtenstion.swift; sourceTree = "<group>"; };
 		A6DE8BE2269C19040052193F /* GithubWeb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GithubWeb.swift; sourceTree = "<group>"; };
 		A6F1AD6E26A431E600D64404 /* MarkDownEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkDownEditor.swift; sourceTree = "<group>"; };
@@ -317,6 +319,7 @@
 			isa = PBXGroup;
 			children = (
 				A65F9F60269E507100332131 /* CustomDrag.swift */,
+				A6D8B15026B02A2400E56D90 /* CustomOvelay.swift */,
 			);
 			path = CustomViewmodifier;
 			sourceTree = "<group>";
@@ -595,6 +598,7 @@
 				A681046E26A0749D004ACBAB /* GroupBoxStyle.swift in Sources */,
 				A6D4C32A26A7A28100831F31 /* SettingValue.swift in Sources */,
 				A614976D26A901C500355BF1 /* GistUploadView.swift in Sources */,
+				A6D8B15126B02A2400E56D90 /* CustomOvelay.swift in Sources */,
 				A63274CA269EBAD9006FDC82 /* StartBackground.swift in Sources */,
 				A6377E062698353000A660D0 /* SideBar.swift in Sources */,
 				A681047226A08204004ACBAB /* TextFieldStyle.swift in Sources */,

@@ -16,6 +16,7 @@ struct CommitsView: View {
     @State private var updatedDate : String = ""
     @State private var selectedCommit : GitCommits?
     @State private var showDetail : Bool = false
+    @State private var onLoad : Bool = true
     var dateFormat : DateFormatter{
         let format = DateFormatter()
         format.dateFormat = "YYYY.MM.dd HH:mm"
@@ -30,11 +31,12 @@ struct CommitsView: View {
                     Text("Commit : \(commits.count)").font(.caption2).padding(.leading,5)
                     Spacer()
                     Text("업데이트 : \(updatedDate)").font(.caption2).padding(.trailing,5)
-                }.frame(height:20).background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow))
+                }//.frame(height:20)
+                .background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow))
                 if let commit = selectedCommit,showDetail{
                     CommitDetail(commit: commit).frame(width:geomtry.size.width,height: geomtry.size.height-20)
                 }
-            }.frame(width: geomtry.size.width)
+            }//.frame(width: geomtry.size.width)
             .onChange(of: geomtry.size.height, perform: { value in
                 if geomtry.size.height < 60{
                     showDetail = false
@@ -47,8 +49,8 @@ struct CommitsView: View {
     
     var topBar : some View{
         List{
-            if commits.isEmpty{
-                EmptyCommit()
+            if onLoad{
+                CommitLoading()
             }else{
                 ForEach(commits,id:\.sha){ commit in
                     CommitCell(selectedCommit: $selectedCommit, commits: commit)
@@ -66,12 +68,19 @@ struct CommitsView: View {
             viewmodel.getCommits(repository: repository, completion: { result in
                 commits = result
                 updatedDate = dateFormat.string(from: Date())
+                onLoad = false
+            },failer: {
+                onLoad = false
             })
         }
         .onChange(of: timer, perform: { value in
+            onLoad = true
             viewmodel.getCommits(repository: repository, completion: { result in
                 commits = result
                 updatedDate = dateFormat.string(from: Date())
+                onLoad = false
+            },failer: {
+                onLoad = false
             })
         })
     }
@@ -88,9 +97,10 @@ struct CommitCell : View{
         HStack{
             Text(commit.committer["name"] ?? "Null").frame(width:100)
             Divider()
-            Text(commit.message).font(.body).foregroundColor(.secondary).frame(maxWidth:.infinity)
+            Text(commit.message).font(.body).foregroundColor(.secondary).frame(minWidth:150,maxWidth:.infinity)
             Text(commit.committer["date"] ?? "Null").font(.callout).foregroundColor(.gray).frame(width: 150)
-        }.onTapGesture {
+        }.listRowBackground(commits == selectedCommit ? Rectangle().foregroundColor(.blue).opacity(0.1) : nil)
+        .onTapGesture {
             selectedCommit = commits
         }
     }
@@ -100,6 +110,7 @@ struct CommitDetail : View{
     @EnvironmentObject var viewmodel : ViewModel
     var commit : GitCommits
     @State private var detail : GitCommitsChange?
+    @State private var onLoad : Bool = true
     
     var title : some View{
         VStack(alignment:.leading,spacing:5){
@@ -111,38 +122,46 @@ struct CommitDetail : View{
     
     var change : some View{
         List{
-            if let content = detail{
-                if content.files.isEmpty{
-                    EmptyCommit()
-                }else{
-                    ForEach(content.files,id:\.sha){ file in
-                        CommitDetailCell(file: file)
+            if onLoad{
+                CommitLoading()
+            }else{
+                if let contents = detail?.files{
+                    if contents.isEmpty{
+                        Text("빈레퍼토리 입니다.")
+                    }else{
+                        ForEach(contents,id:\.sha){ file in
+                            CommitDetailCell(file: file)
+                        }
                     }
                 }
-            }else{
-                EmptyCommit()
             }
         }
     }
     
     var body: some View{
-        GeometryReader{ geomtry in
-            HStack{
-                title.frame(width: 150)
-                change.frame(width: geomtry.size.width-150)
-            }
+        HStack{
+            title.frame(width:150).padding(.leading,5)
+            change
         }
         .onAppear{
             viewmodel.getCommitDetail(commit, completion: { result in
                 detail = result
+                onLoad = false
+            },failer: {
+                onLoad = false
             })
         }.onDisappear{
             detail = nil
+            onLoad = true
         }
         .onChange(of: commit, perform: { value in
             detail = nil
+            onLoad = true
             viewmodel.getCommitDetail(commit, completion: { result in
                 detail = result
+                onLoad = false
+            },failer: {
+                onLoad = false
             })
         })
     }
@@ -170,36 +189,19 @@ struct CommitDetailCell : View{
     }
 }
 
-struct EmptyCommit : View{
+struct CommitLoading : View{
     @State private var moveRightLeft : Bool = false
-    @State private var empty : Bool = false
     var body: some View{
-        HStack(alignment:.center){
-            if empty{
-                VStack(alignment:.center){
-                    Image("Empty").resizable().aspectRatio(contentMode: .fit).frame(width:200)
-                    Text("빈 커밋입니다.")
-                }
-            }else{
-                ZStack{
-                    RoundedRectangle(cornerRadius: 5).frame(width:400,height:6,alignment: .center)
-                        .foregroundColor(Color(.systemGray).opacity(0.3))
-                    RoundedRectangle(cornerRadius: 5).clipShape(Rectangle().offset(x: moveRightLeft ? 240 : -240))
-                        .frame(width:340,height:6,alignment: .leading)
-                        .foregroundColor(Color(.darkGray).opacity(0.5))
-                        .offset(x: moveRightLeft ? 28 : -28)
-                }
-            }
+        ZStack(alignment:.center){
+            RoundedRectangle(cornerRadius: 5).frame(width:400,height:6,alignment: .center)
+                .foregroundColor(Color(.systemGray).opacity(0.3))
+            RoundedRectangle(cornerRadius: 5).clipShape(Rectangle().offset(x: moveRightLeft ? 240 : -240))
+                .frame(width:340,height:6,alignment: .leading)
+                .foregroundColor(Color(.red).opacity(0.5))
+                .offset(x: moveRightLeft ? 28 : -28)
+                .animation(.easeInOut(duration: 1).delay(0.2).repeatForever(autoreverses: true))
         }.frame(maxWidth:.infinity).onAppear{
-            let time = DispatchTime.now() + .seconds(5)
-            DispatchQueue.main.asyncAfter(deadline: time, execute: {
-                withAnimation(.spring()){
-                    self.empty = true
-                }
-            })
-            withAnimation(.easeInOut(duration: 1).delay(0.2).repeatForever()){
-                moveRightLeft.toggle()
-            }
+            moveRightLeft.toggle()
         }
     }
 }
@@ -234,7 +236,7 @@ struct PatchTextView : View{
             ForEach(codes,id:\.number){ code in
                 Text(code.code)
                     .foregroundColor(code.fontColor)
-                    .background(Rectangle().frame(maxWidth:.infinity).foregroundColor(code.backColor).opacity(0.1))
+                    .background(Rectangle().foregroundColor(code.backColor).opacity(0.1))
             }
         }.onAppear{
             //print(codes)

@@ -18,36 +18,26 @@ struct MemoDetailView: View {
     @State private var web_site_url : String = ""
     @State private var new_researches : [Research_Info] = []
     @State private var sof_search_results : [StackOverFlow_item] = []
-    var keyword : String{
-        let ko_rank = KoRank(memo,language: .Korean)
-        let result = ko_rank.run()
-        return result.keyword
-    }
+    @State private var keyword : String = ""
     var body: some View {
         List{
             if editmemo{
                 GroupBox(label: Text("Hash")){
                     TextField("hash", text: $hash_str)
-                }
+                }.groupBoxStyle(IssueGroupBoxStyle())
             }else{
                 ScrollView(.horizontal){
-                    HStack{
+                    LazyHStack{
                         if viewmodel.settingValue.onAutoKeyword{
                             Text("# \(keyword)")
                                 .foregroundColor(.white)
-                                .padding([.leading,.trailing]).padding([.top,.bottom],5).background(Color.black)
+                                .padding([.leading,.trailing],10).padding([.top,.bottom],5).background(Color.black)
                                 .help("자동으로 추출된 키워드입니다.")
-                        }else{
-                            if viewmodel.Hashtags.filter({$0.tagID == research.tagID}).isEmpty{
-                                Text("# 키워드없음")
-                                    .foregroundColor(.white)
-                                    .padding([.leading,.trailing]).padding([.top,.bottom],5).background(Color.black)
-                            }
                         }
                         ForEach(viewmodel.Hashtags.filter({$0.tagID == research.tagID})){ tag in
                             Text("# \(tag.tag ?? "no tag")")
                                 .foregroundColor(.white)
-                                .padding([.leading,.trailing]).padding([.top,.bottom],5).background(Color.black)
+                                .padding([.leading,.trailing],10).padding([.top,.bottom],5).background(Color.black)
                         }
                     }
                 }
@@ -66,17 +56,19 @@ struct MemoDetailView: View {
                     Markdown("\(memo)")
                 }
             }.groupBoxStyle(IssueGroupBoxStyle())
-            if viewmodel.settingValue.recomandSearch{
-                if !(editmemo || sof_search_results.isEmpty){
-                    ScrollView(.horizontal,showsIndicators:false){
-                        HStack{
-                            ForEach(sof_search_results,id:\.question_id){ result in
-                                sofSearchResultView(result)
-                            }
-                        }
-                    }
-                }
-            }
+            /*
+             if viewmodel.settingValue.recomandSearch{
+                 if !(editmemo || sof_search_results.isEmpty){
+                     ScrollView(.horizontal,showsIndicators:false){
+                         HStack{
+                             ForEach(sof_search_results,id:\.question_id){ result in
+                                 sofSearchResultView(result)
+                             }
+                         }
+                     }
+                 }
+             }
+             */
             Group{
                 ForEach(viewmodel.Sites.filter({$0.tagID == research.tagID})){ site in
                     LinkCell(data: site)
@@ -108,20 +100,11 @@ struct MemoDetailView: View {
                     Rectangle().foregroundColor(.clear).frame(height:100)
                 }
             }
-            .onDrop(of: [.url], delegate: UrlDrop(researches: $new_researches,edit: editmemo, completion: { research_info in
-                research_info.getSiteName(completion: {
-                    title in
-                    viewmodel.saveSite(tagID: research.tagID, name: title, url: research_info.url_str)
-                    viewmodel.fetchData()
-                })
-            }))
             if editmemo{
                 HStack{
                     Button(action:{
                         saveNew()
-                        withAnimation(.spring()){
-                            editmemo = false
-                        }
+                        editmemo = false
                     }){
                         Text("변경사항 저장하기")
                     }.keyboardShortcut(KeyEquivalent("s"), modifiers: .command)
@@ -139,6 +122,13 @@ struct MemoDetailView: View {
                 }
             }
         }
+        .onDrop(of: [.url], delegate: UrlDrop(researches: $new_researches,edit: editmemo, completion: { research_info in
+            research_info.getSiteName(completion: {
+                title in
+                viewmodel.saveSite(tagID: research.tagID, name: title, url: research_info.url_str)
+                viewmodel.fetchData()
+            })
+        }))
     }
     
     func addResearch(_ url : String){
@@ -164,6 +154,10 @@ struct MemoDetailView: View {
             })
         }
         memo = research.memo ?? ""
+        let ko_rank = KoRank(memo,native: true,windowsize: 5, language: .Korean)
+        ko_rank.run({ result in
+            keyword = result.keyword
+        })
     }
     func deleteNewResearch(at indexSet : IndexSet){
         new_researches.remove(atOffsets: indexSet)

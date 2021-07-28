@@ -48,7 +48,7 @@ struct CodeReviewCode : View{
                 }){
                     Text("+")
                 }
-            }.frame(maxWidth:.infinity,maxHeight:20).background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow))
+            }.frame(maxHeight:20).background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow))
         }
     }
 }

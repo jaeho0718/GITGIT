@@ -14,6 +14,7 @@ struct GithubCode: View {
     var repository : Repository
     @State private var nowFile : [GitFile] = []
     @State private var file_order : [GitFile] = []
+    @State private var onLoad : Bool = true
     var showCode : Bool {
         if nowFile.isEmpty{
             if let _ = file_order.last{
@@ -33,11 +34,11 @@ struct GithubCode: View {
                 }
             }else{
                  List{
-                     if nowFile.isEmpty{
+                     if onLoad{
                          EmptyGitFile()
                      }else{
                          ForEach(nowFile,id:\.sha){ file in
-                             GitFileView(nowFile: $nowFile, file_order: $file_order, repository: repository, file: file)
+                            GitFileView(nowFile: $nowFile, file_order: $file_order, onLoad: $onLoad, repository: repository, file: file)
                          }
                      }
                  }
@@ -47,6 +48,10 @@ struct GithubCode: View {
         }.onAppear{
             viewmodel.getGitFiles(repository, completion: { value in
                 nowFile = value
+                onLoad = false
+            },failer : {
+                nowFile = []
+                onLoad = false
             })
         }
         .touchBar{
@@ -59,6 +64,7 @@ struct GitFileView : View{
     @EnvironmentObject var viewmodel : ViewModel
     @Binding var nowFile : [GitFile]
     @Binding var file_order : [GitFile]
+    @Binding var onLoad : Bool
     var repository : Repository
     var file : GitFile
     var body: some View{
@@ -78,9 +84,15 @@ struct GitFileView : View{
             }
         })
         .onTapGesture {
+            onLoad = true
             viewmodel.getGitFiles(repository,path: file.path, completion: { value in
                 file_order.append(file)
                 nowFile = value
+                onLoad = false
+            },failer: {
+                file_order.append(file)
+                nowFile = []
+                onLoad = false
             })
         }
     }
@@ -116,6 +128,8 @@ struct GitFileDirectory : View{
                         }
                         viewmodel.getGitFiles(repository, path: file.path, completion: { files in
                             nowFile = files
+                        },failer: {
+                            nowFile = []
                         })
                     }
                 }
@@ -175,35 +189,23 @@ struct GitFileCode : View{
 
 struct EmptyGitFile : View{
     @State private var moveRightLeft : Bool = false
-    @State private var empty : Bool = false
     var body: some View{
         GroupBox{
-            if empty{
-                Text("레파토리가 비어있어요.").frame(maxWidth:.infinity)
-            }else{
-                HStack{
-                    ZStack{
-                        RoundedRectangle(cornerRadius: 5).frame(width:400,height:15,alignment: .center)
-                            .foregroundColor(Color(.systemGray).opacity(0.3))
-                        RoundedRectangle(cornerRadius: 5).clipShape(Rectangle().offset(x: moveRightLeft ? 240 : -240))
-                            .frame(width:340,height:15,alignment: .leading)
-                            .foregroundColor(Color(.darkGray).opacity(0.5))
-                            .offset(x: moveRightLeft ? 28 : -28)
-                            .animation(Animation.easeInOut(duration: 1).delay(0.2).repeatForever(autoreverses: true))
-                            .onAppear{
-                                moveRightLeft.toggle()
-                            }
-                    }
-                    Spacer()
-                }.frame(maxWidth:.infinity)
-            }
-        }.groupBoxStyle(LinkGroupBoxStyle()).onAppear{
-            let time = DispatchTime.now() + .seconds(5)
-            DispatchQueue.main.asyncAfter(deadline: time, execute: {
-                withAnimation(.spring()){
-                    self.empty = true
+            HStack{
+                ZStack{
+                    RoundedRectangle(cornerRadius: 5).frame(width:400,height:15,alignment: .center)
+                        .foregroundColor(Color(.systemGray).opacity(0.3))
+                    RoundedRectangle(cornerRadius: 5).clipShape(Rectangle().offset(x: moveRightLeft ? 240 : -240))
+                        .frame(width:340,height:15,alignment: .leading)
+                        .foregroundColor(Color(.darkGray).opacity(0.5))
+                        .offset(x: moveRightLeft ? 28 : -28)
                 }
-            })
+                Spacer()
+            }.frame(maxWidth:.infinity)
+        }.groupBoxStyle(LinkGroupBoxStyle()).onAppear{
+            withAnimation(.easeInOut(duration: 1).delay(0.2).repeatForever(autoreverses: true)){
+                moveRightLeft.toggle()
+            }
         }
     }
 }

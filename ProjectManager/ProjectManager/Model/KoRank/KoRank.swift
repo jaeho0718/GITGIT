@@ -14,35 +14,42 @@ class KoRank{
     let iteration : Int
     let body : String
     let language : textRank_Language
-    init(_ body : String,damping : CGFloat = 0.85,windowsize : Int = 5,epsilon : CGFloat = 0.001,iteration : Int = 20,language : textRank_Language = .Korean){
+    let native : Bool
+    init(_ body : String,native : Bool = true,damping : CGFloat = 0.85,windowsize : Int = 5,epsilon : CGFloat = 0.001,iteration : Int = 20,language : textRank_Language = .Korean){
         self.damping = damping
         self.epsilon = epsilon
         self.iteration = iteration
         self.windowsize = windowsize
         self.body = body
         self.language = language
+        self.native = native
     }
 }
 
 extension KoRank{
-    func BodyToWord()->[KoWord]{
+    func BodyToWord(_ completion : @escaping ([KoWord])->()){
         //let newbody = KoWord.removeStopwords(body, language: language)
-        var tokens : [String] = []
-        KoWord.getToken(body,native : true, language: language ,completion: { token in
+        KoWord.getToken(body,native : native, language: language ,completion: { token in
+            var tokens : [String] = []
             tokens = token
+            var words : [KoWord] = []
+            for word in tokens{
+                words.append(KoWord(word,language:self.language, index: words.count))
+            }
+            completion(words)
         })
-        var words : [KoWord] = []
-        for word in tokens{
-            words.append(KoWord(word,language:language, index: words.count))
-        }
-        return words
     }
-    func makeGraph()->KoGraph{
-        return KoGraph(BodyToWord(), damping: damping, windowsize: windowsize, epsilon: epsilon, iteration: iteration)
+    func makeGraph(_ completion : @escaping (KoGraph)->()){
+        BodyToWord({ result in
+            let graph = KoGraph(result, damping: self.damping, windowsize: self.windowsize, epsilon: self.epsilon, iteration: self.iteration)
+            completion(graph)
+        })
     }
-    func run()->KoGraphResult{
-        let graph = makeGraph()
-        return graph.run()
+    func run(_ completion : @escaping (KoGraphResult)->()){
+        makeGraph({ graph in
+            let result = graph.run()
+            completion(result)
+        })
     }
 }
 

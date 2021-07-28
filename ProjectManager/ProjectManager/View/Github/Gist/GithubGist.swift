@@ -20,7 +20,7 @@ struct GithubGist: View {
             HStack{
                 Text("gists : \(gists.count)").font(.caption2).padding(.leading,5)
                 Spacer()
-            }.frame(maxWidth:.infinity,maxHeight:20).background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow))
+            }.frame(maxHeight:20).background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow))
         }.onAppear{
             viewmodel.getGist(completion: { result in
                 gists = result
