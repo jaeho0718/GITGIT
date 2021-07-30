@@ -87,7 +87,7 @@ struct AsyncImage<Placeholder: View>: View {
         Group{
             if loader.image != nil {
                 Image(nsImage: loader.image!)
-                        .resizable()
+                    .resizable().aspectRatio(contentMode: .fill)
             } else {
                 placeholder
             }

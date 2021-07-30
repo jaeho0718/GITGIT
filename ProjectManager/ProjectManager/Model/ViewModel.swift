@@ -209,7 +209,7 @@ extension ViewModel{
     //Https parsing
     
     /// parsing user_information form GitHub
-    func getUserData(){
+    func getUserData(onSuccess : @escaping ()->() = {},onFail : @escaping ()->() = {}){
         if let user = self.UserInfo{
             let header : HTTPHeaders = [.accept("application/vnd.github.v3+json"),.authorization("token "+user.access_token)]
             let parameters : Parameters = [:]
@@ -219,15 +219,21 @@ extension ViewModel{
                 case .success(let value):
                     do{
                         let data = try JSONSerialization.data(withJSONObject: value, options: .prettyPrinted)
-                        //let str = String(decoding: data, as: UTF8.self)
-                        //print(str)
-                        self.GithubUserInfo = try JSONDecoder().decode(User_Info.self, from: data)
+                        let info = try JSONDecoder().decode(User_Info.self, from: data)
+                        if info.login == user.user_name{
+                            self.GithubUserInfo = info
+                            onSuccess()
+                        }else{
+                            onFail()
+                        }
                     }catch let error{
                         print("fail to load userdata : \(error.localizedDescription)")
                         self.GithubUserInfo = nil
+                        onFail()
                     }
                 case .failure(let error):
                     print("fail to load : \(error.errorDescription ?? "")")
+                    onFail()
                 }
             })
         }
@@ -407,8 +413,40 @@ extension ViewModel{
         }
     }
     
-    func editIssues(repo : Repository,issue : Issues){
-        
+    func changeIssueState(repo : Repository,issue : Issues,state : Issues.issue_state,onSuccess : @escaping ()->() = {},onFail : @escaping()->() = {}){
+        struct send : Codable{
+            var state : String
+        }
+        if let user = self.UserInfo{
+            do{
+                let body = try JSONEncoder().encode(send(state: state.rawValue))
+                guard let url = URL(string:"https://api.github.com/repos/\(user.user_name)/\(repo.name ?? "")/issues/\(issue.number)") else {return}
+                var request = URLRequest(url: url)
+                request.httpMethod = "PATCH"
+                request.addValue("token \(user.access_token)", forHTTPHeaderField: "Authorization")
+                request.httpBody = body
+                let task = URLSession.shared.dataTask(with: request){ (data,response,error) in
+                    if let _ = error{
+                        onFail()
+                    }
+                    if let data = data{
+                        do{
+                            _ = try JSONDecoder().decode(Issues.self, from: data)
+                            onSuccess()
+                        }catch let error{
+                            print("Error to decode file : \(error.localizedDescription)")
+                            onFail()
+                        }
+                    }else{
+                        onFail()
+                    }
+                }
+                task.resume()
+            }catch let error{
+                onFail()
+                print("Fail to encode Data : \(error.localizedDescription)")
+            }
+        }
     }
     
     /// Return Issues throughout complication parameter
@@ -510,7 +548,7 @@ extension ViewModel{
         }
     }
     
-    func getGist(completion : @escaping ([Gist])->()){
+    func getGist(completion : @escaping ([Gist])->(),failer : @escaping ()->() = {}){
         if let user = UserInfo{
             let header : HTTPHeaders = [.accept("application/vnd.github.v3+json"),.authorization("token "+user.access_token)]
             let parameters : Parameters = [:]
@@ -522,9 +560,11 @@ extension ViewModel{
                         let gists = try JSONDecoder().decode([Gist].self, from: data)
                         completion(gists)
                     }catch let error{
+                        failer()
                         print("error to decode gists : \(error.localizedDescription)")
                     }
                 case .failure(let error):
+                    failer()
                     print("error to parse gists : \(error.localizedDescription)")
                 }
             })
@@ -608,10 +648,11 @@ extension ViewModel{
 }
 
 extension ViewModel{
-    func createGist(_ data : String,fileName : String,document:String,gistPublic : Bool){
+    func createGist(_ data : String,fileName : String,document:String,gistPublic : Bool,onFail : @escaping()->()={},onSuccess : @escaping ()->()={}){
         if let user = self.UserInfo{
             let postData = GistPostData(description: document, files: [fileName : GistFile(content: data)], type: gistPublic)
             guard let postObject = try? JSONEncoder().encode(postData) else {
+                onFail()
                 print("error decode")
                 return}
             let url = URL(string: "https://api.github.com/gists")!
@@ -620,9 +661,13 @@ extension ViewModel{
             request.addValue("application/vnd.github.v3+json", forHTTPHeaderField: "accept")
             request.httpMethod = "POST"
             request.httpBody = postObject
-            URLSession.shared.dataTask(with: request){ (json,response,error) in
+            URLSession.shared.dataTask(with: request){ (data,response,error) in
                 if let error = error{
                     print(error.localizedDescription)
+                    onFail()
+                }
+                if let _ = data{
+                    onSuccess()
                 }
             }.resume()
         }

@@ -6,11 +6,12 @@
 //
 
 import SwiftUI
-
+import Network
 @main
 struct ProjectManagerApp: App {
     @StateObject var viewmodel = ViewModel()
     @State private var start : initial_state = .content
+    @State private var connectInternet : Bool = true
     @Environment(\.scenePhase) var scenePhase
     var body: some Scene {
         WindowGroup{
@@ -18,17 +19,29 @@ struct ProjectManagerApp: App {
                 case .start:
                     StartView(initialState: $start).environmentObject(viewmodel)
                 case .content:
-                    ContentView().environmentObject(viewmodel).onAppear{
+                    ContentView(internetConnect: $connectInternet).environmentObject(viewmodel).onAppear{
                         if UserDefaults.standard.bool(forKey: "start"){
                             start = .content
                         }else{
                             start = .start
                         }
+                        let monitor = NWPathMonitor()
+                        monitor.pathUpdateHandler = { path in
+                            if path.status == .satisfied{
+                                connectInternet = true
+                            }else{
+                                connectInternet = false
+                            }
+                        }
+                        let queue = DispatchQueue(label: "Monitor")
+                        monitor.start(queue: queue)
                     }
             }
             //ContentView().environmentObject(viewmodel)
-        }.onChange(of: scenePhase, perform: { value in
-            if value == .active{
+        }
+        .onChange(of: scenePhase, perform: { phase in
+            print(phase)
+            if phase == .active{
                 if UserDefaults.standard.bool(forKey: "start"){
                     start = .content
                 }else{
