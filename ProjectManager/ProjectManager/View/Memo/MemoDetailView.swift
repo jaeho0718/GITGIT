@@ -7,6 +7,7 @@
 
 import SwiftUI
 import MarkdownUI
+
 struct MemoDetailView: View {
     @EnvironmentObject var viewmodel : ViewModel
     var research : Research
@@ -18,7 +19,6 @@ struct MemoDetailView: View {
     @State private var web_site_url : String = ""
     @State private var new_researches : [Research_Info] = []
     @State private var sof_search_results : [StackOverFlow_item] = []
-    @State private var keyword : String = ""
     var body: some View {
         List{
             if editmemo{
@@ -28,12 +28,6 @@ struct MemoDetailView: View {
             }else{
                 ScrollView(.horizontal){
                     LazyHStack{
-                        if viewmodel.settingValue.onAutoKeyword{
-                            Text("# \(keyword)")
-                                .foregroundColor(.white)
-                                .padding([.leading,.trailing],10).padding([.top,.bottom],5).background(Color.black)
-                                .help("자동으로 추출된 키워드입니다.")
-                        }
                         ForEach(viewmodel.Hashtags.filter({$0.tagID == research.tagID})){ tag in
                             Text("# \(tag.tag ?? "no tag")")
                                 .foregroundColor(.white)
@@ -99,7 +93,13 @@ struct MemoDetailView: View {
                 if viewmodel.Sites.filter({$0.tagID == research.tagID}).isEmpty{
                     Rectangle().foregroundColor(.clear).frame(height:100)
                 }
-            }
+            }.onDrop(of: [.url], delegate: UrlDrop(researches: $new_researches,edit: editmemo, completion: { research_info in
+                research_info.getSiteName(completion: {
+                    title in
+                    viewmodel.saveSite(tagID: research.tagID, name: title, url: research_info.url_str)
+                    viewmodel.fetchData()
+                })
+            }))
             if editmemo{
                 HStack{
                     Button(action:{
@@ -122,13 +122,6 @@ struct MemoDetailView: View {
                 }
             }
         }
-        .onDrop(of: [.url], delegate: UrlDrop(researches: $new_researches,edit: editmemo, completion: { research_info in
-            research_info.getSiteName(completion: {
-                title in
-                viewmodel.saveSite(tagID: research.tagID, name: title, url: research_info.url_str)
-                viewmodel.fetchData()
-            })
-        }))
     }
     
     func addResearch(_ url : String){
@@ -154,10 +147,6 @@ struct MemoDetailView: View {
             })
         }
         memo = research.memo ?? ""
-        let ko_rank = KoRank(memo,native: true,windowsize: 5, language: .Korean)
-        ko_rank.run({ result in
-            keyword = result.keyword
-        })
     }
     func deleteNewResearch(at indexSet : IndexSet){
         new_researches.remove(atOffsets: indexSet)

@@ -7,13 +7,14 @@
 
 import Foundation
 import SwiftUI
-
+import AlertToast
 struct Account : View{
     @EnvironmentObject var viewmodel : ViewModel
     @State private var user_token : String = ""
     @State private var user_name : String = ""
     @State private var alert : error_type? = nil
-    
+    @State private var notMatchUser : Bool = false
+    @State private var successUpdate : Bool = false
     enum error_type : Identifiable{
         case failtoupadate,failtocreate,alerttodelete
         var id : Int{
@@ -66,7 +67,7 @@ struct Account : View{
             .padding([.leading,.trailing])
             Spacer()
         }.frame(width:350,height:350)
-        .background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow))
+        .background(VisualEffectView(material: .popover, blendingMode: .withinWindow))
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .onAppear{setup()}
         .alert(item: $alert, content: { type in
@@ -81,7 +82,19 @@ struct Account : View{
                 }), secondaryButton: .cancel())
             }
         })
-        
+        .toast(isPresenting: $notMatchUser, alert: {
+            AlertToast(displayMode: .alert, type: .error(.red),title: "계정 업데이트 실패")
+        })
+        .toast(isPresenting: $successUpdate, alert: {
+            AlertToast(displayMode: .alert, type: .complete(.green),title: "계정 업데이트 완료")
+        })
+        .toolbar(content: {
+            Button(action:{
+                UserDefaults.standard.setValue(false, forKey: "start")
+            }){
+                Text("INIT")
+            }
+        })
     }
     
     func setup(){
@@ -98,15 +111,27 @@ struct Account : View{
                 if !(viewmodel.updateUser(User(user_name: user_name, access_token: user_token))){
                     alert = .failtoupadate
                 }else{
+                    viewmodel.readUser()
                     setup()
-                    viewmodel.fetchData()
+                    viewmodel.getUserData(onSuccess: {
+                        successUpdate.toggle()
+                        viewmodel.fetchData()
+                    }, onFail: {
+                        notMatchUser.toggle()
+                    })
                 }
             }else{
                 if !(viewmodel.createUser(User(user_name: user_name, access_token: user_token))){
                     alert = .failtocreate
                 }else{
+                    viewmodel.readUser()
                     setup()
-                    viewmodel.fetchData()
+                    viewmodel.getUserData(onSuccess: {
+                        successUpdate.toggle()
+                        viewmodel.fetchData()
+                    }, onFail: {
+                        notMatchUser.toggle()
+                    })
                 }
             }
         }else{
@@ -155,6 +180,8 @@ struct Account : View{
 
 struct Account_Previews: PreviewProvider {
     static var previews: some View {
-        Account().environmentObject(ViewModel())
+        Group {
+            Account().environmentObject(ViewModel())
+        }
     }
 }

@@ -7,7 +7,7 @@
 
 import SwiftUI
 import CodeMirror_SwiftUI
-
+import AlertToast
 struct GistUploadView: View {
     @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject var viewmodel : ViewModel
@@ -27,6 +27,8 @@ struct GistUploadView: View {
         }
     }
     @State private var open_State : open = .open
+    @State private var failUpload : Bool = false
+    @State private var successToUpload : Bool = false
     var title : String
     var comment : CodeComment
     var body: some View {
@@ -44,8 +46,12 @@ struct GistUploadView: View {
             CodeView(theme: colorScheme == .dark ? SettingValue.getTheme(viewmodel.settingValue.code_type_dark) : SettingValue.getTheme(viewmodel.settingValue.code_type_light),code: $code, mode: FileType.getType(title).code_mode.mode())
                 .frame(minHeight:200)
             MarkDownEditor(memo: $description)
-            Button(action:{show.toggle()
-                viewmodel.createGist(code, fileName: title, document: description,gistPublic: open_State.value)
+            Button(action:{
+                viewmodel.createGist(code, fileName: title, document: description,gistPublic: open_State.value,onFail: {
+                    failUpload.toggle()
+                },onSuccess: {
+                    successToUpload.toggle()
+                })
             }){
                 Text("UPLOAD")
                     .foregroundColor(.white)
@@ -60,6 +66,10 @@ struct GistUploadView: View {
         .onAppear{
             code = comment.code ?? ""
             description = comment.review ?? ""
-        }
+        }.toast(isPresenting: $failUpload, alert: {
+            AlertToast(displayMode: .alert, type: .error(.red), title: "실패",subTitle: "인터넷연결을 확인하세요.")
+        }).toast(isPresenting: $successToUpload, alert: {
+            AlertToast(displayMode: .alert, type: .complete(.green), title: "업로드 완료",subTitle: "적용까지 시간이 소요될 수 있습니다.")
+        }, completion: { show.toggle()})
     }
 }

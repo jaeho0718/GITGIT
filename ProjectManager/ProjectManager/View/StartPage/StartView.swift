@@ -8,7 +8,7 @@
 import SwiftUI
 import AVKit
 import CodeMirror_SwiftUI
-
+import AlertToast
 enum start_page {
     case start,introduce,introduce2,settingdata,introduce3
 }
@@ -88,6 +88,7 @@ struct Start2 : View{
     @Binding var page : start_page
     @State private var id : String = ""
     @State private var password : String = ""
+    @State private var notMatchUser : Bool = false
     var body: some View {
         VStack{
             Group{
@@ -108,14 +109,28 @@ struct Start2 : View{
                         //not save first time
                         if !(viewmodel.updateUser(User(user_name: id, access_token: password))){
                         }else{
-                            viewmodel.fetchData()
-                            page = .introduce2
+                            viewmodel.readUser()
+                            setup()
+                            viewmodel.getUserData(onSuccess: {
+                                //successUpdate.toggle()
+                                viewmodel.fetchData()
+                                page = .introduce2
+                            }, onFail: {
+                                notMatchUser.toggle()
+                            })
                         }
                     }else{
                         if !(viewmodel.createUser(User(user_name: id, access_token: password))){
                         }else{
-                            viewmodel.fetchData()
-                            page = .introduce2
+                            viewmodel.readUser()
+                            setup()
+                            viewmodel.getUserData(onSuccess: {
+                                //successUpdate.toggle()
+                                viewmodel.fetchData()
+                                page = .introduce2
+                            }, onFail: {
+                                notMatchUser.toggle()
+                            })
                         }
                     }
                 }
@@ -136,8 +151,17 @@ struct Start2 : View{
         .onAppear{
             id = viewmodel.UserInfo?.user_name ?? ""
             password = viewmodel.UserInfo?.access_token ?? ""
+        }.toast(isPresenting: $notMatchUser, alert: {
+            AlertToast(displayMode: .alert, type: .error(.red),title: "계정 오류",subTitle: "계정이 존재하지 않습니다.")
+        })
+    }
+    func setup(){
+        if let user = viewmodel.UserInfo{
+            password = user.access_token
+            id = user.user_name
         }
     }
+    
     func check()->Bool{
         if password.isEmpty && id.isEmpty{
             return false

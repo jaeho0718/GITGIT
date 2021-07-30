@@ -153,8 +153,8 @@ struct ReviewCell : View{
         .sheet(isPresented: $uploadGist, content: {
             GistUploadView(show: $uploadGist,title:type, comment: data)
         }).onAppear{
-            let ko_word = KoRank(data.review ?? "")
-            ko_word.run({ result in
+            let wordrank = WordRank(data.review ?? "")
+            wordrank.run(100, completion: { result in
                 keyword = result.keyword
             })
         }
