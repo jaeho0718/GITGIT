@@ -61,7 +61,7 @@ struct EventCell : View{
             Spacer()
         }
         .frame(maxWidth:.infinity,minHeight:50,maxHeight:60)
-        .background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow))
+        .background(VisualEffectView(material: .popover, blendingMode: .withinWindow))
         .clipShape(RoundedRectangle(cornerRadius: 10))
     }
     

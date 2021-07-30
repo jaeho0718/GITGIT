@@ -52,9 +52,13 @@ struct CommitsView: View {
             if onLoad{
                 CommitLoading()
             }else{
-                ForEach(commits,id:\.sha){ commit in
-                    CommitCell(selectedCommit: $selectedCommit, commits: commit)
-                    Divider()
+                if commits.isEmpty{
+                    Text("커밋이 비었습니다.")
+                }else{
+                    ForEach(commits,id:\.sha){ commit in
+                        CommitCell(selectedCommit: $selectedCommit, commits: commit)
+                        Divider()
+                    }
                 }
             }
         }

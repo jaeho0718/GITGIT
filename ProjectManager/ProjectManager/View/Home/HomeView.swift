@@ -9,11 +9,17 @@ import SwiftUI
 
 struct HomeView : View {
     @EnvironmentObject var viewmodel : ViewModel
-    
+    var backImg : String{
+        return UserDefaults.standard.string(forKey: "wallpaper") ?? ""
+    }
     var scrollBackground : some View{
-        AsyncImage(url: URL(string: "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg")!, placeholder: {
-            
-        }).clipped()
+        Group{
+            if let url = URL(string: backImg){
+                AsyncImage(url: url, placeholder: {
+                    Rectangle().foregroundColor(.clear)
+                }).clipped()
+            }
+        }
     }
     
     var body: some View{
@@ -27,7 +33,7 @@ struct HomeView : View {
                 Spacer()
             }.padding(.top,10)
             EventView().padding([.leading,.trailing])
-        }//.background(scrollBackground)
+        }.background(scrollBackground)
     }
 }
 

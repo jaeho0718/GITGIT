@@ -6,16 +6,21 @@
 //
 
 import SwiftUI
-
+import AlertToast
 struct GithubGist: View {
     @EnvironmentObject var viewmodel : ViewModel
     @State private var gists : [Gist] = []
+    @State private var onLoad : Bool = true
     var body: some View {
         VStack{
             List{
-                ForEach(gists,id:\.node_id){ gist in
-                    GistCell(data: gist)
-                }.onDelete(perform: deleteGist)
+                if gists.isEmpty{
+                    Text("None")
+                }else{
+                    ForEach(gists,id:\.node_id){ gist in
+                        GistCell(data: gist)
+                    }.onDelete(perform: deleteGist)
+                }
             }
             HStack{
                 Text("gists : \(gists.count)").font(.caption2).padding(.leading,5)
@@ -24,8 +29,13 @@ struct GithubGist: View {
         }.onAppear{
             viewmodel.getGist(completion: { result in
                 gists = result
+                onLoad = false
+            },failer: {
+                onLoad = false
             })
-        }
+        }.toast(isPresenting: $onLoad, alert: {
+            AlertToast(displayMode: .alert,type: .regular,title: "LOAD DATA")
+        })
     }
     func deleteGist(at indexOffset : IndexSet){
         indexOffset.forEach({ index in

@@ -13,6 +13,7 @@ import SwiftUIX
 struct CommitChart : View{
     @EnvironmentObject var viewmodel : ViewModel
     @State private var entities : [Double] = []
+    @State private var onLoad : Bool = true
     @TimerState(interval: 60) var timer : Int
     var body: some View{
         VStack{
@@ -20,12 +21,16 @@ struct CommitChart : View{
                 Text("Commits").bold().padding(.top,5).font(.title).padding(.leading).padding(.top,5)
                 Spacer()
             }
-            Chart(data: entities)
-                .chartStyle(
-                    LineChartStyle(.quadCurve, lineColor: .green, lineWidth: 5)
-                )
+            if !onLoad{
+                Chart(data: entities)
+                    .chartStyle(
+                        LineChartStyle(.quadCurve, lineColor: .green, lineWidth: 5)
+                    )
+            }else{
+                Spacer()
+            }
         }.frame(minWidth:300,maxWidth:.infinity)
-        .background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow))
+        .background(VisualEffectView(material: .popover, blendingMode: .withinWindow))
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .onAppear{
             createEntities()
@@ -36,6 +41,7 @@ struct CommitChart : View{
     }
     
     func createEntities(){
+        onLoad = true
         let dateformatter = DateFormatter()
         dateformatter.dateFormat = "YYYY-MM-dd"
         let day = Date().get(.day)
@@ -68,6 +74,9 @@ struct CommitChart : View{
                             entities.append(Double(value)/total+0.1)
                         }
                     })
+                    onLoad.toggle()
+                },failer: {
+                    onLoad.toggle()
                 })
             })
         }

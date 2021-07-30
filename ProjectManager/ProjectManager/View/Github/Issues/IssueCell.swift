@@ -7,6 +7,7 @@
 
 import SwiftUI
 import MarkdownUI
+import AlertToast
 struct IssueCell : View{
     var drag_condition : Bool = true
     @EnvironmentObject var viewmodel : ViewModel
@@ -16,7 +17,8 @@ struct IssueCell : View{
     @State private var show_detail : Bool = false
     var issue : Issues
     var repo : Repository
-    
+    @State private var showFailAelrt : Bool = false
+    @State private var showSuccessAelrt : Bool = false
     var commentDetail : some View{
         Section(header:Label("comments", systemImage: "bubble.left.fill")){
             ForEach(comments,id:\.id){ value in
@@ -27,6 +29,13 @@ struct IssueCell : View{
     var bottomButton : some View{
         HStack{
             Spacer()
+            if checkAssigne(){
+                Button(action:{
+                    viewmodel.changeIssueState(repo: repo, issue: issue, state: issue.state == "open" ? .closed : .open,onSuccess: {showSuccessAelrt.toggle()},onFail: {showFailAelrt.toggle()})
+                }){
+                    Text(issue.state == "open" ? "Closed this issue" : "Open this issue").foregroundColor(.red)
+                }.buttonStyle(AddButtonStyle())
+            }
             Button(action:{
                 comment = ""
                 comment_add.toggle()
@@ -94,8 +103,8 @@ struct IssueCell : View{
                     }
                     Spacer()
                 }.padding(.bottom,5)
+                Markdown("\(issue.body)")
                 if show_detail{
-                    Markdown("\(issue.body)")
                     Divider()
                     if !(comments.isEmpty){
                         commentDetail
@@ -117,9 +126,11 @@ struct IssueCell : View{
             }
         }
         .onAppear{
-            viewmodel.getComments(repo: repo, number: issue.number, complication: { value in
-                comments = value
-            })
+            DispatchQueue.main.async {
+                viewmodel.getComments(repo: repo, number: issue.number, complication: { value in
+                    comments = value
+                })
+            }
         }
         .OnDragable(condition: drag_condition, data: {
             if let source_data = try? JSONEncoder().encode(issue){
@@ -129,6 +140,24 @@ struct IssueCell : View{
                 return NSItemProvider()
             }
         })
+        .toast(isPresenting: $showFailAelrt, alert: {
+            AlertToast(displayMode: .alert, type: .regular,title: "변경실패")
+        })
+        .toast(isPresenting: $showSuccessAelrt, alert: {
+            AlertToast(displayMode: .alert, type: .regular, title: "변경완료",subTitle: "적용되기까지 시간이 소요될 수 있습니다.")
+        })
+    }
+    
+    func checkAssigne()->Bool{
+        if let user = viewmodel.UserInfo?.user_name{
+            if issue.assignees.contains(where: {$0.login == user}){
+                return true
+            }else{
+                return false
+            }
+        }else{
+            return false
+        }
     }
 }
 

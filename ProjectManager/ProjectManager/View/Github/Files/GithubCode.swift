@@ -35,14 +35,18 @@ struct GithubCode: View {
             }else{
                  List{
                      if onLoad{
-                         EmptyGitFile()
+                        LoadView()
                      }else{
-                         ForEach(nowFile,id:\.sha){ file in
-                            GitFileView(nowFile: $nowFile, file_order: $file_order, onLoad: $onLoad, repository: repository, file: file)
-                         }
+                        if nowFile.isEmpty{
+                            Text("파일이 없습니다.")
+                        }else{
+                            ForEach(nowFile,id:\.sha){ file in
+                               GitFileView(nowFile: $nowFile, file_order: $file_order, onLoad: $onLoad, repository: repository, file: file)
+                            }
+                        }
+                         
                      }
                  }
-                 
             }
             GitFileDirectory(repository: repository, nowFile: $nowFile, file_order: $file_order).padding([.bottom,.leading,.trailing],5)
         }.onAppear{
@@ -187,7 +191,7 @@ struct GitFileCode : View{
     }
 }
 
-struct EmptyGitFile : View{
+struct LoadView : View{
     @State private var moveRightLeft : Bool = false
     var body: some View{
         GroupBox{

@@ -131,7 +131,7 @@ struct RepositoryView: View {
         DispatchQueue.main.async {
             indexOffset.forEach({ index in
                 let CodeReviews = viewmodel.Codes.filter{$0.repo_id == repo_data.id}[index]
-                for review in viewmodel.CodeReviews.filter{$0.reviewID == CodeReviews.reviewID}{
+                for review in viewmodel.CodeReviews.filter({$0.reviewID == CodeReviews.reviewID}){
                     viewmodel.deleteData(review)
                 }
                 viewmodel.deleteData(CodeReviews)
@@ -143,13 +143,18 @@ struct RepositoryView: View {
 
 struct IssueDrop : DropDelegate{
     var completion : (Issues)->()
+    var filer : ()->() = {}
     func performDrop(info: DropInfo) -> Bool {
         if let item = info.itemProviders(for: [.data]).first{
             item.loadDataRepresentation(forTypeIdentifier: "public.data", completionHandler: { (data,error) in
                 if let DATA = data{
                     if let file = try? JSONDecoder().decode(Issues.self, from: DATA){
                         completion(file)
+                    }else{
+                        filer()
                     }
+                }else{
+                    filer()
                 }
             })
             return true
