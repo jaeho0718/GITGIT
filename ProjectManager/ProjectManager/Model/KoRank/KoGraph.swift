@@ -6,115 +6,93 @@
 //
 
 import Foundation
-import simd
-class KoGraph{
-    typealias Ko_NodeList = [KoWord : CGFloat]
-    var words : [KoWord]
-    var edges = [KoWord:Ko_NodeList]() //metrix
-    var nodes = Ko_NodeList()
-    let windowsize : Int
-    let damping : CGFloat
-    let epsilon : CGFloat
-    let iteration : Int
-    init() {
-        self.damping = 0.85
-        self.epsilon = 0.001
-        self.iteration = 20
-        self.windowsize = 5
-        self.words = []
-    }
+
+class WordGraph{
+    typealias nodeList = [Word:Float]
+    var window : Int
+    var nodes = nodeList()
+    var edges = [Word:nodeList]()
+    var damping : Float
+    var epsilon : Float
     
-    init(_ words : [KoWord],damping : CGFloat = 0.85,windowsize : Int = 5,epsilon : CGFloat = 0.001,iteration : Int = 20) {
+    init(window : Int,damping : Float = 0.85,epsilon : Float = 0.0001) {
+        self.window = window
         self.damping = damping
         self.epsilon = epsilon
-        self.iteration = iteration
-        self.windowsize = windowsize
-        self.words = words
     }
-}
- 
-extension KoGraph{
-    func getEdge(){
-        clear()
-        for (i,word1) in words.enumerated(){
-            if i+windowsize < words.count{
-                for (j,word2) in words[i+1 ..< i+windowsize].enumerated(){
-                    if j > words.count{
-                        break
-                    }else{
-                        addEdge(from: word1, to: word2)
-                    }
-                }
-            }
+    
+    struct GraphResult{
+        var converged : Bool
+        var iteration : Int
+        var nodes : nodeList
+        var keyword : String{
+            return nodes.sorted(by: {$0.value > $1.value}).first?.key.raw ?? "Null"
         }
-    }
-    func setValue(_ node : KoWord, value : CGFloat = 1.0){
-        nodes[node] = value
-    }
-    func addEdge(from a: KoWord, to b: KoWord, withWeight weight: CGFloat = 1.0){
-        if weight > 0 {
-            for n in [a, b] {
-                setValue(n)
-            }
-            setEdge(from: a, to: b, withWeight: weight)
-            setEdge(from: b, to: a, withWeight: weight)
-        }
-    }
-    func setEdge(from a: KoWord, to b: KoWord, withWeight weight: CGFloat){
-        if var existingEdges = edges[a] {
-            existingEdges[b] = weight
-            edges[a] = existingEdges
-        } else {
-            edges[a] = [b: weight]
-        }
-    }
-    func clear(){
-        nodes.removeAll()
-        edges.removeAll()
     }
 }
 
-extension KoGraph{
+extension WordGraph{
     
-    func run()->KoGraphResult{
-        clear()
-        getEdge()
-        for i in 0..<iteration{
-            let newNodes = runRoundOfPageRank(with: nodes)
-            //check Coverage
-            if abs(nodes.values.reduce(0.0, +) - newNodes.values.reduce(0.0, +)) < epsilon{
-                return KoGraphResult(hasConverge: true, results: newNodes, iteration: i)
+    func clearGraph(){
+        nodes.removeAll()
+        edges.removeAll()
+    }
+    
+    func initializeNode(_ words : [Word]){
+        //let initialValue : Float = 1 / Float(words.count)
+        for word in words{
+            nodes[word] = 1.0
+        }
+    }
+    
+    func initializeEdges(){
+        for node in nodes{
+            let neighborNodes = nodes.filter{abs($0.key.id-node.key.id) < self.window && $0.key.id != node.key.id} as nodeList
+            edges[node.key] = neighborNodes
+        }
+    }
+    
+    func createGraph(_ words : [Word]){
+        clearGraph()
+        initializeNode(words)
+        initializeEdges()
+    }
+    
+    func run(_ iteration : Int = 20)->GraphResult{
+        for i in 1...iteration{
+            let priorNodes = nodes
+            for node in nodes{
+                nodes[node.key] = computeVertexScore(node.key)
             }
-            nodes = newNodes
-        }
-        return KoGraphResult(hasConverge: false, results: nodes, iteration: iteration)
-    }
-    
-    func runRoundOfPageRank(with nodes: Ko_NodeList)->Ko_NodeList{
-        var nextNodes = nodes
-        for n in nodes.keys{
-            let score = getSumOfOutPutValues(n, in: nodes)
-            let nodeEdgeWeights = getTotalEdgeWeight(n)
-            if nodeEdgeWeights > 0.0 {
-                nextNodes[n] = (1-damping) + damping * score / nodeEdgeWeights
-            } else {
-                nextNodes[n] = 0.0
+            if hasConverged(n1: nodes, n2: priorNodes){
+                return GraphResult(converged: true, iteration: i, nodes: nodes)
             }
         }
-        return nextNodes
+        return GraphResult(converged: false, iteration: iteration, nodes: nodes)
     }
     
-    func getTotalEdgeWeight(_ node : KoWord)->CGFloat{
-        if let edge = edges[node]{
-            return edge.values.reduce(0.0, +)
-        }else{
-            return 0.0
+    func computeVertexScore(_ word : Word)->Float{
+        guard let inners = edges[word] else {return 0.0}
+        let constant : Float = (1-damping)/Float(nodes.count)
+        var innerSum : Float = 0.0
+        for inner in inners{
+            // get innerSum
+            guard let outNumber = edges[inner.key]?.count else {return 0.0}
+            let score = getVertexScore(inner.key)
+            innerSum += (score/Float(outNumber))
         }
+        return constant + innerSum*damping
     }
     
-    func getSumOfOutPutValues(_ node: KoWord, in nodelist: Ko_NodeList) -> CGFloat {
-        guard let outputs = edges[node] else { return 0.0 }
-        return outputs.map({ (nodelist[$0.key] ?? 0.0) * $0.value / getTotalEdgeWeight($0.key)
-        }).reduce(0.0, +)
+    func getVertexScore(_ word : Word)->Float{
+        return nodes[word] ?? 0.0
+    }
+    
+    func getTotalVertexScore(_ vertex : nodeList)->Float{
+        return vertex.reduce(0, {$0+$1.value})
+    }
+    
+    func hasConverged(n1 : nodeList, n2 : nodeList)->Bool{
+        return abs(getTotalVertexScore(n1)-getTotalVertexScore(n2)) < epsilon
     }
 }

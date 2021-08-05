@@ -7,62 +7,34 @@
 
 import Foundation
 
-class KoRank{
-    let windowsize : Int
-    let damping : CGFloat
-    let epsilon : CGFloat
-    let iteration : Int
-    let body : String
-    let language : textRank_Language
-    let native : Bool
-    init(_ body : String,native : Bool = true,damping : CGFloat = 0.85,windowsize : Int = 5,epsilon : CGFloat = 0.001,iteration : Int = 20,language : textRank_Language = .Korean){
-        self.damping = damping
-        self.epsilon = epsilon
-        self.iteration = iteration
-        self.windowsize = windowsize
+class WordRank{
+    var damping : Float
+    var window : Int
+    var body : String
+    var graph : WordGraph
+    var native : Bool
+    
+    init(_ body : String,native : Bool = true,window : Int = 5,damping : Float = 0.85) {
         self.body = body
-        self.language = language
+        self.window = window
+        self.damping = damping
         self.native = native
+        self.graph = WordGraph(window: self.window, damping: self.damping, epsilon: 0.0001)
     }
 }
 
-extension KoRank{
-    func BodyToWord(_ completion : @escaping ([KoWord])->()){
-        //let newbody = KoWord.removeStopwords(body, language: language)
-        KoWord.getToken(body,native : native, language: language ,completion: { token in
-            var tokens : [String] = []
-            tokens = token
-            var words : [KoWord] = []
-            for word in tokens{
-                words.append(KoWord(word,language:self.language, index: words.count))
-            }
-            completion(words)
-        })
-    }
-    func makeGraph(_ completion : @escaping (KoGraph)->()){
-        BodyToWord({ result in
-            let graph = KoGraph(result, damping: self.damping, windowsize: self.windowsize, epsilon: self.epsilon, iteration: self.iteration)
-            completion(graph)
-        })
-    }
-    func run(_ completion : @escaping (KoGraphResult)->()){
-        makeGraph({ graph in
-            let result = graph.run()
+extension WordRank{
+    func splitBody(_ completion : @escaping ([Word])->()){
+        Word.splitWord(self.body,native: self.native, completion: { result in
             completion(result)
         })
     }
-}
-
-struct KoGraphResult{
-    var hasConverge : Bool
-    var results : KoGraph.Ko_NodeList
-    var iteration : Int
-    var keyword : String{
-        let nodes = results.sorted(by: {$0.value > $1.value})
-        if let key = nodes.first{
-            return key.key.word
-        }else{
-            return "No KeyWord"
-        }
+    
+    func run(_ maxIteration : Int,completion : @escaping (WordGraph.GraphResult)->()){
+        splitBody({ result in
+            self.graph.createGraph(result)
+            let graphresult = self.graph.run(maxIteration)
+            completion(graphresult)
+        })
     }
 }

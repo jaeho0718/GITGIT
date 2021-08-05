@@ -1,10 +1,3 @@
-//
-//  Sentence.swift
-//  ProjectManager
-//
-//  Created by Lee Jaeho on 2021/07/16.
-//
-
 import Foundation
 
 public struct Sentence: Hashable {

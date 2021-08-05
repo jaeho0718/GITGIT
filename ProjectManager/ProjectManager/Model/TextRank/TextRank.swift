@@ -8,13 +8,12 @@
 import Foundation
 
 public class TextRank {
-    var text: String {
+    public var text: String {
         didSet {
             textToSentences()
         }
     }
-    public var language : textRank_Language = .English
-    
+
     public var graph: TextGraph
     public var sentences = [Sentence]()
     public var summarizationFraction: Float = 0.2
@@ -30,8 +29,7 @@ public class TextRank {
         graph = TextGraph(damping: graphDamping)
     }
 
-    public init(language : textRank_Language,text: String) {
-        self.language = language
+    public init(text: String) {
         self.text = text
         graph = TextGraph(damping: graphDamping)
         textToSentences()
@@ -91,6 +89,7 @@ extension TextRank {
     /// - Returns: An array of sentences.
     static func splitIntoSentences(_ text: String, additionalStopwords stopwords: [String] = [String]()) -> [Sentence] {
         if text.isEmpty { return [] }
+
         var x = [Sentence]()
         text.enumerateSubstrings(in: text.range(of: text)!, options: [.bySentences, .localized]) { substring, _, _, _ in
             if let substring = substring, !substring.isEmpty {
