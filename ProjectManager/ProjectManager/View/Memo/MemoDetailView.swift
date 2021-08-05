@@ -7,6 +7,9 @@
 
 import SwiftUI
 import MarkdownUI
+import SwiftSoup
+import Alamofire
+import AlertToast
 
 struct MemoDetailView: View {
     @EnvironmentObject var viewmodel : ViewModel
@@ -17,8 +20,11 @@ struct MemoDetailView: View {
     @State private var memo : String = ""
     @State private var hash_str : String = ""
     @State private var web_site_url : String = ""
-    @State private var new_researches : [Research_Info] = []
     @State private var sof_search_results : [StackOverFlow_item] = []
+    @State private var noURL : Bool = false
+    var sites : [Site]{
+        return viewmodel.Sites.filter{$0.tagID == research.tagID}.sorted(by:{$0.rate > $1.rate})
+    }
     var body: some View {
         List{
             if editmemo{
@@ -45,60 +51,36 @@ struct MemoDetailView: View {
             }
             GroupBox(label:Text("memo")){
                 if editmemo{
-                    MarkDownEditor(memo: $memo)
+                    MarkDownEditor(memo: $memo,repository:repo)
                 }else{
                     Markdown("\(memo)")
                 }
             }.groupBoxStyle(IssueGroupBoxStyle())
-            /*
-             if viewmodel.settingValue.recomandSearch{
-                 if !(editmemo || sof_search_results.isEmpty){
-                     ScrollView(.horizontal,showsIndicators:false){
-                         HStack{
-                             ForEach(sof_search_results,id:\.question_id){ result in
-                                 sofSearchResultView(result)
-                             }
-                         }
-                     }
-                 }
-             }
-             */
             Group{
-                ForEach(viewmodel.Sites.filter({$0.tagID == research.tagID})){ site in
-                    LinkCell(data: site)
-                }.onDelete(perform: deleteResearch)
-                ForEach(new_researches){ site in
-                    URLCell(research: site)
-                        .onTapGesture {
-                            if let url = URL(string: site.url_str){
-                                NSWorkspace.shared.open(url)
+                if editmemo{
+                    GroupBox{
+                        HStack{
+                            TextField("url", text: $web_site_url,onCommit:{
+                                saveSite(web_site_url)
+                                web_site_url = ""
+                            }).textFieldStyle(PlainTextFieldStyle())
+                            Button(action:{
+                                saveSite(web_site_url)
+                                web_site_url = ""
+                            }){
+                                Image(systemName: "plus")
                             }
                         }
-                }.onDelete(perform: deleteNewResearch)
-                if editmemo{
-                    HStack{
-                        TextField("url", text: $web_site_url,onCommit:{
-                            addResearch(web_site_url)
-                            web_site_url = ""
-                        })
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                        Button(action:{
-                            addResearch(web_site_url)
-                            web_site_url = ""
-                        }){
-                            Image(systemName: "plus")
-                        }
-                    }
+                    }.groupBoxStyle(LinkGroupBoxStyle()).padding([.top,.bottom],5)
                 }
+                ForEach(sites){ site in
+                    LinkCell(data: site, keyword : viewmodel.Hashtags.filter({$0.tagID == research.tagID}).first?.tag,research: research)
+                }.onDelete(perform: deleteResearch)
                 if viewmodel.Sites.filter({$0.tagID == research.tagID}).isEmpty{
                     Rectangle().foregroundColor(.clear).frame(height:100)
                 }
-            }.onDrop(of: [.url], delegate: UrlDrop(researches: $new_researches,edit: editmemo, completion: { research_info in
-                research_info.getSiteName(completion: {
-                    title in
-                    viewmodel.saveSite(tagID: research.tagID, name: title, url: research_info.url_str)
-                    viewmodel.fetchData()
-                })
+            }.onDrop(of: [.url], delegate: UrlDrop(completion: { url in
+                saveSite(url)
             }))
             if editmemo{
                 HStack{
@@ -122,14 +104,9 @@ struct MemoDetailView: View {
                 }
             }
         }
-    }
-    
-    func addResearch(_ url : String){
-        if url.isEmpty{
-            //alert = .nourl
-        }else{
-            new_researches.append(Research_Info(url_str: url))
-        }
+        .toast(isPresenting: $noURL, alert: {
+            AlertToast(displayMode: .alert, type: .regular,subTitle: "빈 URL은 추가할 수 없습니다.")
+        })
     }
     func setValue(){
         for hash in viewmodel.Hashtags.filter({$0.tagID == research.tagID}){
@@ -148,27 +125,27 @@ struct MemoDetailView: View {
         }
         memo = research.memo ?? ""
     }
-    func deleteNewResearch(at indexSet : IndexSet){
-        new_researches.remove(atOffsets: indexSet)
-    }
     func deleteResearch(at indexSet : IndexSet){
-        let researchs = viewmodel.Sites.filter({$0.tagID == self.research.tagID})
         indexSet.forEach({ index in
-            let site = researchs[index]
+            let site = sites[index]
             viewmodel.deleteData(site)
         })
         viewmodel.fetchData()
     }
+    
+    func saveSite(_ url : String){
+        if !(url.isEmpty){
+            getSiteName(url_str: url, completion: { result in
+                viewmodel.saveSite(tagID: research.tagID, name: result,url: url)
+                viewmodel.fetchData()
+            })
+        }else{
+            noURL = true
+        }
+    }
+    
     func saveNew(){
         DispatchQueue.main.async {
-            for site in new_researches{
-                if let index = new_researches.firstIndex(where: {$0.id == site.id}){
-                    new_researches.remove(at: index)
-                    site.getSiteName(completion: { title in
-                        viewmodel.saveSite(tagID: research.tagID, name: title, url: site.url_str)
-                    })
-                }
-            }
             for hash in viewmodel.Hashtags.filter({$0.tagID == research.tagID}){
                 viewmodel.deleteData(hash)
             }

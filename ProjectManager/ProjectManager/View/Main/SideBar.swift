@@ -95,7 +95,12 @@ struct RepositoryCell : View{
                 NavigationLink(destination:RepositoryView(repo_data : data)){
                     Text(data.name ?? "No name").bold()
                 }
-                Text(data.site ?? "No site").font(.caption).opacity(0.7)
+                if let description = data.descriptions{
+                    Text(description).font(.caption2).opacity(0.7)
+                }else if let language = data.language{
+                    Text(language).font(.caption).opacity(0.7)
+                }
+                //Text(data.site ?? "No site").font(.caption).opacity(0.7)
             }
         }
     }

@@ -58,16 +58,16 @@ struct RepositoryView: View {
                         NavigationLink(destination:AddMemoView(addMemo: $addMemo, repo_ID: id)){
                             Label("자료 추가", systemImage: "plus.circle")
                         }.accentColor(.secondary)
+                        .onDrop(of: [.data], delegate: IssueDrop(completion: { value in
+                            DispatchQueue.main.async {
+                                if let id = repo_data.id{
+                                    viewmodel.saveResearch(name: value.title, memo: value.body, repo_ID: id, issue_url : value.html_url)
+                                    viewmodel.fetchData()
+                                }
+                            }
+                        }))
                     }
                 }
-                .onDrop(of: [.data], delegate: IssueDrop(completion: { value in
-                    DispatchQueue.main.async {
-                        if let id = repo_data.id{
-                            viewmodel.saveResearch(name: value.title, memo: value.body, repo_ID: id, issue_url : value.html_url)
-                            viewmodel.fetchData()
-                        }
-                    }
-                }))
                 /*
                  Section(header:Label("HashTag", systemImage: "h.square")){
                      ForEach(viewmodel.Hashtags){ hash in
@@ -97,6 +97,26 @@ struct RepositoryView: View {
                         }
                     }
                 }))
+                Divider()
+                Section(header:
+                    Label(
+                        title: { Text("tags") },
+                        icon: { Image(systemName:"tag.circle").resizable().aspectRatio(contentMode: .fit).frame(width:15,height:15)}
+                    )
+                ){
+                    ForEach(viewmodel.Hashtags.filter{ tags in
+                        for research in viewmodel.Researchs.filter({$0.tagID == tags.tagID}){
+                            if research.id == repo_data.id{
+                                return true
+                            }
+                        }
+                        return false
+                    }){ hashtag in
+                        NavigationLink(destination:HashTagView(repo: repo_data, tag: hashtag)){
+                            Label(hashtag.tag ?? "", systemImage: "tag.fill").accentColor(.black)
+                        }
+                    }
+                }
             }
         }.navigationTitle(Text("\(repo_data.name ?? "No Name")"))
         .onAppear{

@@ -117,6 +117,7 @@ struct IssueCell : View{
                 }
             }.frame(maxWidth:.infinity)
         }.groupBoxStyle(IssueGroupBoxStyle())
+        .overlay(showSuccessAelrt || showFailAelrt ? Color.black.opacity(0.2) : Color.clear)
         .onTapGesture {
             withAnimation(.spring(response: 0.5, dampingFraction: 0.5, blendDuration: 0.5)){
                 show_detail.toggle()

@@ -7,36 +7,48 @@
 
 import SwiftUI
 
-struct HashDetailView: View {
-    @EnvironmentObject var viewmodel : ViewModel
-    var hash_data : Hashtag
-    var body: some View {
-        Form{
-            Section(header:Label("이 레파토리와 관련된 링크", systemImage: "")){
-                List{
-                    ForEach(viewmodel.Sites.filter({$0.tagID == hash_data.tagID})){ site in
-                        LinkCell(data: site)
-                    }
-                }
-            }
-        }.navigationTitle(Text("#\(hash_data.tag ?? "이름을 불러올 수 없음")"))
-    }
-}
-
 struct LinkCell : View{
     @EnvironmentObject var viewmodel : ViewModel
+    @State private var popOver : Bool = false
     var data : Site
+    var keyword : String?
+    var research : Research
     var body: some View{
         GroupBox{
-            Text(data.name ?? "이름을 불러올 수 없음").frame(maxWidth:.infinity)
-        }.groupBoxStyle(LinkGroupBoxStyle())
-        .onTapGesture {
-            if let url = URL(string: data.url ?? ""){
-                NSWorkspace.shared.open(url)
+            HStack{
+                /*
+                 Button(action: {
+                     data.star.toggle()
+                     viewmodel.fetchData()
+                 }){
+                 }.buttonStyle(PinButtonStyle(pin: data.star))
+                 */
+                Spacer()
+                Text(data.name ?? "이름을 불러올 수 없음")
+                Spacer()
             }
-        }.onDrag {
+        }.groupBoxStyle(LinkGroupBoxStyle())
+        .onDrag {
             //optional 처리하기
-            return NSItemProvider(object: NSURL(string: data.url ?? "")!)
+            if let url = NSURL(string: data.url ?? ""){
+                return NSItemProvider(object: url)
+            }else{
+                return NSItemProvider()
+            }
         }
+        .onTapGesture {
+            popOver.toggle()
+        }
+        .contextMenu(ContextMenu(menuItems: {
+            Button(action:{
+                NSPasteboard.general.declareTypes([.string], owner: nil)
+                NSPasteboard.general.setString(data.url ?? "", forType: .string)
+            }){
+                Text("링크복사")
+            }
+        }))
+        .popover(isPresented: $popOver,arrowEdge: .top, content:{
+            SitePopUp(url: data.url ?? "", title: data.name ?? "")
+        })
     }
 }

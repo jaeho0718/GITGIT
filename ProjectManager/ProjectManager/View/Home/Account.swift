@@ -29,7 +29,8 @@ struct Account : View{
                 if let user = viewmodel.GithubUserInfo{
                     viewmodel.getUserImage().resizable().aspectRatio(contentMode: .fit).frame(width:70,height:70).clipShape(Circle())
                     Text(user.name).bold().font(.largeTitle)
-                    Link("> GitHub <", destination: URL(string: user.html_url)!)
+                    Link("GitHub", destination: URL(string: user.html_url)!)
+                        .foregroundColor(.white).frame(width:60).padding(2).background(Color.black)
                 }else{
                     Image("github").resizable().aspectRatio(contentMode: .fit)
                         .frame(width:70,height:70)

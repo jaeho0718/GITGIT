@@ -22,12 +22,8 @@ struct GitubPage: View {
                 if add_issue{
                     AddIssueCell(add_issue: $add_issue, issues: $issues, repository: repository)
                 }
-                if onLoad{
-                    EmptyIssue().frame(maxWidth:.infinity)
-                }else{
-                    ForEach(issues){ issue in
-                        IssueCell(issue: issue, repo: repository)
-                    }
+                ForEach(issues){ issue in
+                    IssueCell(issue: issue, repo: repository)
                 }
             }
             HStack{
@@ -57,6 +53,14 @@ struct GitubPage: View {
         }
         .onChange(of: timer, perform: { value in
             setValue()
+        })
+        .blur(radius: onLoad ? 10 : 0)
+        .overlay({
+            ZStack{
+                if onLoad{
+                    LoadSearch()
+                }
+            }
         })
     }
     func setValue(){

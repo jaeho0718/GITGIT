@@ -49,19 +49,22 @@ struct CommitsView: View {
     
     var topBar : some View{
         List{
-            if onLoad{
-                CommitLoading()
+            if commits.isEmpty{
+                Text("커밋이 비었습니다.")
             }else{
-                if commits.isEmpty{
-                    Text("커밋이 비었습니다.")
-                }else{
-                    ForEach(commits,id:\.sha){ commit in
-                        CommitCell(selectedCommit: $selectedCommit, commits: commit)
-                        Divider()
-                    }
+                ForEach(commits,id:\.sha){ commit in
+                    CommitCell(selectedCommit: $selectedCommit, commits: commit)
+                    Divider()
                 }
             }
-        }
+        }.blur(radius: onLoad ? 10 : 0)
+        .overlay({
+            ZStack{
+                if onLoad{
+                    LoadSearch()
+                }
+            }
+        })
     }
     
     var body: some View {
@@ -126,20 +129,23 @@ struct CommitDetail : View{
     
     var change : some View{
         List{
-            if onLoad{
-                CommitLoading()
-            }else{
-                if let contents = detail?.files{
-                    if contents.isEmpty{
-                        Text("빈레퍼토리 입니다.")
-                    }else{
-                        ForEach(contents,id:\.sha){ file in
-                            CommitDetailCell(file: file)
-                        }
+            if let contents = detail?.files{
+                if contents.isEmpty{
+                    Text("빈레퍼토리 입니다.")
+                }else{
+                    ForEach(contents,id:\.sha){ file in
+                        CommitDetailCell(file: file)
                     }
                 }
             }
-        }
+        }.blur(radius: onLoad ? 10 : 0)
+        .overlay({
+            ZStack{
+                if onLoad{
+                    LoadSearch()
+                }
+            }
+        })
     }
     
     var body: some View{
@@ -211,36 +217,38 @@ struct CommitLoading : View{
 }
 
 struct PatchTextView : View{
-    
+    var normalMode : Bool = false
     var patch : String
     var codes : [CodeType]{
         let strings = patch.components(separatedBy: "\n")
         var items : [CodeType] = []
-        var number : Int = 0
-        for code in strings{
+        for (i,code) in strings.enumerated(){
             if let index = code.firstIndex(of: "+"),index == code.startIndex{
-                var editableCode = code
                 //let editedCode = editableCode.removeFirst()
-                items.append(CodeType(number: number, code: editableCode, type: .add))
+                items.append(CodeType(normalMode: normalMode, number: i, code: code, type: .add))
             }else if let index = code.firstIndex(of: "-"),index == code.startIndex{
-                var editableCode = code
                 //let editedCode = editableCode.removeFirst()
-                items.append(CodeType(number: number, code: editableCode, type: .delete))
+                items.append(CodeType(normalMode: normalMode,number: i, code: code, type: .delete))
             }else{
-                var editableCode = code
                 //let editedCode = editableCode.removeFirst()
-                items.append(CodeType(number: number, code: editableCode, type: .normal))
+                items.append(CodeType(normalMode: normalMode,number: i, code: code, type: .normal))
             }
-            number += 1
         }
         return items
     }
     var body: some View{
         VStack(alignment:.leading,spacing:1){
             ForEach(codes,id:\.number){ code in
-                Text(code.code)
-                    .foregroundColor(code.fontColor)
-                    .background(Rectangle().foregroundColor(code.backColor).opacity(0.1))
+                HStack(alignment:.top,spacing:4){
+                    if normalMode{
+                        Text("\(code.number)").foregroundColor(.secondary)
+                            .frame(minWidth:30,maxHeight:.infinity)
+                            .background(Rectangle().foregroundColor(.gray).opacity(0.1))
+                    }
+                    Text(code.code)
+                        .foregroundColor(code.fontColor)
+                        .background(Rectangle().foregroundColor(code.backColor).opacity(0.1))
+                }
             }
         }.onAppear{
             //print(codes)
@@ -248,6 +256,7 @@ struct PatchTextView : View{
     }
     
     struct CodeType{
+        var normalMode : Bool
         var number : Int
         var code : String
         var type : type
@@ -268,7 +277,7 @@ struct PatchTextView : View{
             case .delete:
                 return .red
             case .normal:
-                return .secondary
+                return normalMode ? .primary : .secondary
             }
         }
         enum type{

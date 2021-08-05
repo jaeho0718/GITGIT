@@ -22,11 +22,11 @@ struct GistCell: View {
                     Text(data.files.first?.value.filename ?? "No Name")
                     Spacer()
                     if data.gist_public{
-                        Text("Public").font(.caption2).padding(5)
-                            .overlay(Capsule().stroke(lineWidth: 2)).foregroundColor(.blue)
+                        Text("Public").font(.caption2).padding(5).foregroundColor(.white)
+                            .background(RoundedRectangle(cornerRadius: 10).foregroundColor(.blue))
                     }else{
-                        Text("Private").font(.caption2).padding(5)
-                            .overlay(Capsule().stroke(lineWidth: 2)).foregroundColor(.red)
+                        Text("Private").font(.caption2).padding(5).foregroundColor(.white)
+                            .background(RoundedRectangle(cornerRadius: 10).foregroundColor(.red))
                     }
                 }
             },
@@ -39,6 +39,7 @@ struct GistCell: View {
         )){
             if show_detail{
                 CodeView(theme:  colorScheme == .dark ? SettingValue.getTheme(viewmodel.settingValue.code_type_dark) : SettingValue.getTheme(viewmodel.settingValue.code_type_light), code: $code, mode: FileType.getType(data.files.first?.value.filename ?? "Null.swift").code_mode.mode(), fontSize: 12, showInvisibleCharacters: false, lineWrapping: false).frame(minHeight:300,maxHeight:600)
+                Divider()
                 Markdown("\(data.description)")
             }else{
                 Text("Tap to show more").font(.caption2).opacity(0.6)

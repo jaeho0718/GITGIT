@@ -7,6 +7,8 @@
 
 import SwiftUI
 import Network
+import SwiftUIX
+
 @main
 struct ProjectManagerApp: App {
     @StateObject var viewmodel = ViewModel()
@@ -15,41 +17,32 @@ struct ProjectManagerApp: App {
     @Environment(\.scenePhase) var scenePhase
     var body: some Scene {
         WindowGroup{
-            switch start{
-                case .start:
+            SwitchOver(start)
+                .case(.start, content: {
                     StartView(initialState: $start).environmentObject(viewmodel)
-                case .content:
-                    ContentView(internetConnect: $connectInternet).environmentObject(viewmodel).onAppear{
-                        if UserDefaults.standard.bool(forKey: "start"){
-                            start = .content
-                        }else{
-                            start = .start
-                        }
-                        let monitor = NWPathMonitor()
-                        monitor.pathUpdateHandler = { path in
-                            if path.status == .satisfied{
-                                connectInternet = true
-                            }else{
-                                connectInternet = false
-                            }
-                        }
-                        let queue = DispatchQueue(label: "Monitor")
-                        monitor.start(queue: queue)
+                })
+                .case(.content, content: {
+                    ContentView(internetConnect: $connectInternet).environmentObject(viewmodel)
+                })
+                .onAppear{
+                    if UserDefaults.standard.bool(forKey: "start"){
+                        start = .content
+                    }else{
+                        start = .start
                     }
-            }
-            //ContentView().environmentObject(viewmodel)
-        }
-        .onChange(of: scenePhase, perform: { phase in
-            print(phase)
-            if phase == .active{
-                if UserDefaults.standard.bool(forKey: "start"){
-                    start = .content
-                }else{
-                    start = .start
+                    let monitor = NWPathMonitor()
+                    monitor.pathUpdateHandler = { path in
+                        if path.status == .satisfied{
+                            connectInternet = true
+                        }else{
+                            connectInternet = false
+                        }
+                    }
+                    let queue = DispatchQueue(label: "Monitor")
+                    monitor.start(queue: queue)
                 }
-            }
-        }).windowToolbarStyle(UnifiedCompactWindowToolbarStyle())
-        
+        }
+        .windowToolbarStyle(UnifiedCompactWindowToolbarStyle())
         Settings{
             Setting()
         }

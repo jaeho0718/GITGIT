@@ -11,14 +11,17 @@ import HighlightedTextEditor
 struct MarkDownEditor: View {
     @Binding var memo : String
     @State private var nowpositoin : Int = 0
-    
+    var repository : Repository? = nil
     var tool : some View{
         ScrollView(.horizontal,showsIndicators:false){
             HStack(alignment:.center){
                 Label("도구", systemImage: "keyboard")
                 Button(action:{
                     let s_Index = memo.index(memo.startIndex, offsetBy: nowpositoin)
-                    let key = "\n```\n //CODE \n```"
+                    var key = "\n```\n //CODE \n```"
+                    if let repo = repository,let language = repo.language{
+                        key = "\n```\(language)\n //CODE \n```"
+                    }
                     memo.insert(contentsOf: key, at: s_Index)
                 }){
                     Label("code", systemImage: "chevron.left.slash.chevron.right")
