@@ -113,11 +113,12 @@ class ViewModel : ObservableObject{
         hash.tagID = tagID
     }
     
-    func saveSite(tagID : UUID?,name : String,url : String){
+    func saveSite(tagID : UUID?,name : String,url : String,rate : Double = 0.0){
         let site = Site(context: container.viewContext)
         site.tagID = tagID
         site.name = name
         site.url = url
+        site.rate = rate
     }
     
     func saveCode(reviewID : UUID = UUID(),repo_id : String,title : String ,path : String,code : String){
@@ -340,6 +341,29 @@ extension ViewModel{
                         completion(String(data: value, encoding: .utf8) ?? "")
                     }
                 }
+        }
+    }
+    
+    func getGitSearch(keyword : String,language : String?,completion : @escaping (GitSearchResults)->(),failer : @escaping ()->()){
+        if let user = self.UserInfo{
+            let header : HTTPHeaders = [.accept("application/vnd.github.v3+json"),.authorization("token "+user.access_token)]
+            let parameters : Parameters = ["q": language != nil ? "\(keyword) language:\(language ?? "")" : "https://api.github.com/search/code?q=\(keyword)"]
+            AF.request("https://api.github.com/search/code",parameters: parameters, headers: header).responseJSON(completionHandler: { response in
+                switch (response.result){
+                case .success(let value):
+                    do{
+                        let data = try JSONSerialization.data(withJSONObject: value, options: .prettyPrinted)
+                        let result = try JSONDecoder().decode(GitSearchResults.self, from: data)
+                        completion(result)
+                    }catch let error{
+                        print("Git Search : \(error.localizedDescription)")
+                        failer()
+                    }
+                case .failure(let error):
+                    print("Response Fail : \(error.localizedDescription)")
+                    failer()
+                }
+            })
         }
     }
 }
@@ -645,9 +669,7 @@ extension ViewModel{
             })
         }
     }
-}
-
-extension ViewModel{
+    
     func createGist(_ data : String,fileName : String,document:String,gistPublic : Bool,onFail : @escaping()->()={},onSuccess : @escaping ()->()={}){
         if let user = self.UserInfo{
             let postData = GistPostData(description: document, files: [fileName : GistFile(content: data)], type: gistPublic)
@@ -671,5 +693,69 @@ extension ViewModel{
                 }
             }.resume()
         }
+    }
+    
+    func downloadGitCode(_ link : String,downloadUrl : URL,completion : @escaping (String)->(),failer : @escaping ()->()){
+        if let user = self.UserInfo{
+            let header : HTTPHeaders = [.accept("application/vnd.github.v3+json"),.authorization("token "+user.access_token)]
+            let parameters : Parameters = [:]
+            AF.request(link,parameters: parameters, headers: header).responseJSON(completionHandler: { response in
+                switch response.result{
+                case .success(let value):
+                    do{
+                        let data = try JSONSerialization.data(withJSONObject: value, options: .prettyPrinted)
+                        let json = try JSONDecoder().decode(GitFile.self, from: data)
+                        let destination: DownloadRequest.Destination = { _, _ in
+                            let fileURL = downloadUrl
+                            return (fileURL, [.removePreviousFile,.createIntermediateDirectories])
+                        }
+                        AF.download(json.download_url ?? "",method: .get,to: destination).downloadProgress(closure: { (progress) in
+                            
+                        }).response(completionHandler: { result in
+                            switch result.result{
+                            case .success(_):
+                                completion(result.fileURL?.absoluteString ?? "")
+                            case .failure(let error):
+                                print(error.localizedDescription)
+                            }
+                        })
+                    }catch let error{
+                        print(error.localizedDescription)
+                        failer()
+                    }
+                case .failure(let error):
+                    print(error.localizedDescription)
+                    failer()
+                }
+            })
+        }
+    }
+    
+    func getSearchCode(_ link : String,completion : @escaping (String)->(),failer : @escaping (String)->()){
+        if let user = self.UserInfo{
+            let header : HTTPHeaders = [.accept("application/vnd.github.v3+json"),.authorization("token "+user.access_token)]
+            let parameters : Parameters = [:]
+            AF.request(link,method: .get,parameters: parameters, headers: header).responseJSON(completionHandler: { response in
+                switch response.result{
+                case .success(let value):
+                    do{
+                        let data = try JSONSerialization.data(withJSONObject: value, options: .prettyPrinted)
+                        let git_data = try JSONDecoder().decode(GitFile.self, from: data)
+                        completion(git_data.content?.fromBase64() ?? "")
+                    }catch let error{
+                        failer(error.localizedDescription)
+                    }
+                case .failure(let error):
+                    failer("no Response : \(error.localizedDescription)")
+                }
+            })
+        }
+    }
+}
+
+extension ViewModel{
+    func getTfIdf(research : Research,site : Site,keyword : String,completion:@escaping (Double)->()){
+        let model = TF_IDF(sites: self.Sites.filter({$0.tagID == research.tagID}))
+        return model.getTfIdf(site: site, keyword: keyword, completion: completion)
     }
 }

@@ -9,31 +9,27 @@ import Foundation
 import SwiftUI
 import SwiftSoup
 import Alamofire
-///Use This Structure to record data before save data.
-struct Research_Info : Identifiable{
-    var id : UUID = UUID()
-    var url_str : String
-    ///get Site Name
-    func getSiteName(completion : @escaping (String)->Void){
-        AF.request(url_str).responseString(completionHandler: { response in
-            switch response.result{
-            case .success(let value):
-                do {
-                    let doc : Document = try SwiftSoup.parse(value)
-                    let link : Element? = try? doc.select("title").first()
-                    if let element = link{
-                        let title = try element.text()
-                        completion(title)
-                    }else{
-                        completion(url_str)
-                    }
-                }catch let error{
-                    print("Fail to bring name : \(error.localizedDescription)")
+
+public func getSiteName(url_str : String,completion : @escaping (String)->Void){
+    AF.request(url_str).responseString(completionHandler: { response in
+        switch response.result{
+        case .success(let value):
+            do {
+                let document : Document = try SwiftSoup.parse(value)
+                let link : Element? = try? document.select("title").first()
+                if let element = link{
+                    let title = try element.text()
+                    completion(title)
+                }else{
+                    completion(url_str)
                 }
-            case .failure(let error):
-                print("Fail to load web :\(error.localizedDescription)")
-                break
+            }catch let error{
+                completion(url_str)
+                print("Fail to bring name : \(error.localizedDescription)")
             }
-        })
-    }
+        case .failure(let error):
+            completion(url_str)
+            print("Fail to load web :\(error.localizedDescription)")
+        }
+    })
 }
