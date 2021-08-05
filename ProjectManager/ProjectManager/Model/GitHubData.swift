@@ -102,8 +102,9 @@ struct GitFile : Codable,Hashable{
     var url : String
     var git_url : String?
     var html_url : String?
+    var download_url : String?
     var _links : GitLinks
-    
+    var content : String?
     func getIcon()->Image{
         switch type{
         case "file":
@@ -326,5 +327,31 @@ struct GitEvent : Codable{
         var id : Int
         var name : String
         var url : String
+    }
+}
+
+struct GitSearchResults : Codable{
+    var total_count : Int
+    var incomplete_results : Bool
+    var items : [GitSearchItem]
+}
+
+struct GitSearchItem : Codable{
+    var name : String
+    var path : String
+    var sha : String
+    var url : String //api
+    var git_url : String
+    var html_url : String? //html
+    var repository : Repository
+    struct Repository : Codable{
+        var id : Int
+        var name : String
+        var full_name : String
+        var description : String?
+        var owner : owner
+        struct owner : Codable{
+            var login : String
+        }
     }
 }
