@@ -6,8 +6,10 @@ CAU Hackathon Program
 
 ## GITGIT을 통해 프로젝트를 관리하세요.
 
+![MacOS](https://shields.io/badge/MacOS--9cf?logo=Apple&style=social)
 ![Generic badge](https://img.shields.io/badge/version-1.0.0-critical.svg)
 ![License badge](https://img.shields.io/cocoapods/l/m)
+[설치하기](https://drive.google.com/file/d/1-jBivXb_QFOCHr0obB2UwljZjFTjwAP7/view?usp=sharing)
 
 ## WHY?
 
