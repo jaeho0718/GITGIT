@@ -355,3 +355,21 @@ struct GitSearchItem : Codable{
         }
     }
 }
+
+struct GitStar : Codable{
+    var id : Int
+    var node_id : String
+    var name : String
+    var full_name : String
+    var description : String?
+    var html_url : String
+    var language : String?
+    var watchers : Int
+    var stargazers_count : Int
+    var owner : owner
+    struct owner : Codable{
+        var login : String
+        var id : Int
+        var html_url : String
+    }
+}

@@ -695,7 +695,7 @@ extension ViewModel{
         }
     }
     
-    func downloadGitCode(_ link : String,downloadUrl : URL,completion : @escaping (String)->(),failer : @escaping ()->()){
+    func downloadGitCode(_ link : String,downloadUrl : URL,completion : @escaping (String)->(),failer : @escaping (String)->()){
         if let user = self.UserInfo{
             let header : HTTPHeaders = [.accept("application/vnd.github.v3+json"),.authorization("token "+user.access_token)]
             let parameters : Parameters = [:]
@@ -706,8 +706,8 @@ extension ViewModel{
                         let data = try JSONSerialization.data(withJSONObject: value, options: .prettyPrinted)
                         let json = try JSONDecoder().decode(GitFile.self, from: data)
                         let destination: DownloadRequest.Destination = { _, _ in
-                            let fileURL = downloadUrl
-                            return (fileURL, [.removePreviousFile,.createIntermediateDirectories])
+                            let fileURL = downloadUrl.appendingPathComponent(json.name)
+                            return (fileURL, [.createIntermediateDirectories])
                         }
                         AF.download(json.download_url ?? "",method: .get,to: destination).downloadProgress(closure: { (progress) in
                             
@@ -716,16 +716,14 @@ extension ViewModel{
                             case .success(_):
                                 completion(result.fileURL?.absoluteString ?? "")
                             case .failure(let error):
-                                print(error.localizedDescription)
+                                failer(error.localizedDescription)
                             }
                         })
                     }catch let error{
-                        print(error.localizedDescription)
-                        failer()
+                        failer(error.localizedDescription)
                     }
                 case .failure(let error):
-                    print(error.localizedDescription)
-                    failer()
+                    failer(error.localizedDescription)
                 }
             })
         }
@@ -747,6 +745,28 @@ extension ViewModel{
                     }
                 case .failure(let error):
                     failer("no Response : \(error.localizedDescription)")
+                }
+            })
+        }
+    }
+    
+    func getStarred(completion : @escaping ([GitStar])->(),failer : @escaping ()->()){
+        if let user = self.UserInfo{
+            let header : HTTPHeaders = [.accept("application/vnd.github.v3+json"),.authorization("token "+user.access_token)]
+            let parameters : Parameters = [:]
+            AF.request("https://api.github.com/users/\(user.user_name)/starred",parameters: parameters, headers: header).responseJSON(completionHandler: {
+                response in
+                switch response.result{
+                case .success(let value):
+                    do{
+                        let data = try JSONSerialization.data(withJSONObject: value, options: .prettyPrinted)
+                        let result = try JSONDecoder().decode([GitStar].self, from: data)
+                        completion(result)
+                    }catch{
+                        failer()
+                    }
+                case .failure(_):
+                    failer()
                 }
             })
         }
