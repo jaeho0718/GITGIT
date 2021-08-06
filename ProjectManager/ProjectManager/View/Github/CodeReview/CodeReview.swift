@@ -95,7 +95,7 @@ struct AddReviewCell : View{
     var body: some View{
         VStack{
             CodeView(theme: colorScheme == .dark ? SettingValue.getTheme(viewmodel.settingValue.code_type_dark) : SettingValue.getTheme(viewmodel.settingValue.code_type_light), code: $code, mode: CodeMode.swift.mode(), showInvisibleCharacters: false, lineWrapping: false).frame(minHeight:150).padding(.top,5)
-            MarkDownEditor(memo: $comments)
+            MarkDownEditor(memo: $comments,filename: data.title)
             HStack{
                 Spacer()
                 Button(action:{
@@ -120,8 +120,10 @@ struct AddReviewCell : View{
 struct ReviewCell : View{
     @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject var viewmodel : ViewModel
-    @State private var showDetail : Bool = false
     @State private var uploadGist : Bool = false
+    @State private var code : String = ""
+    @State private var memo : String = ""
+    @State private var edit : Bool = false
     var data : CodeComment
     var type : String
     @State private var keyword : String = ""
@@ -138,15 +140,21 @@ struct ReviewCell : View{
                 .help("GIST에 업로드하기")
                 Button(action:{
                     withAnimation(.spring()){
-                        showDetail.toggle()
+                        if edit{
+                            saveNew()
+                        }
+                        edit.toggle()
                     }
                 }){
-                    Image(systemName: showDetail ? "chevron.up.square.fill" : "chevron.down.square.fill")
+                    Image(systemName: edit ? "checkmark" : "pencil")
                 }.buttonStyle(RemoveBackgroundStyle())
                 
             }.frame(maxWidth:.infinity,maxHeight: 30)
-            if !showDetail{
-                CodeView(theme: colorScheme == .dark ? SettingValue.getTheme(viewmodel.settingValue.code_type_dark) : SettingValue.getTheme(viewmodel.settingValue.code_type_light), code: .constant(data.code ?? ""), mode: FileType.getType(type).code_mode.mode(), showInvisibleCharacters: false, lineWrapping: false).frame(minHeight:150).padding(.top,5).allowsHitTesting(false)
+            if edit{
+                CodeView(theme: colorScheme == .dark ? SettingValue.getTheme(viewmodel.settingValue.code_type_dark) : SettingValue.getTheme(viewmodel.settingValue.code_type_light), code: $code, mode: FileType.getType(type).code_mode.mode(), showInvisibleCharacters: false, lineWrapping: false).frame(minHeight:150).padding(.top,5)
+                MarkDownEditor(memo: $memo,filename: type)
+            }else{
+                PatchTextView(normalMode: true, patch: data.code ?? "NULL")
                 Markdown("\(data.review ?? "")").padding(.bottom,5)
             }
         }.padding(5).background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow)).clipShape(RoundedRectangle(cornerRadius: 10))
@@ -157,6 +165,14 @@ struct ReviewCell : View{
             wordrank.run(100, completion: { result in
                 keyword = result.keyword
             })
+            memo = data.review ?? ""
+            code = data.code ?? ""
         }
+    }
+    
+    func saveNew(){
+        data.code = code
+        data.review = memo
+        viewmodel.fetchData()
     }
 }

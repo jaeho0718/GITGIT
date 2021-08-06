@@ -7,8 +7,11 @@
 
 import SwiftUI
 import AlertToast
+import SwiftUIX
+
 struct GithubGist: View {
     @EnvironmentObject var viewmodel : ViewModel
+    @TimerState(interval: 60) private var timer : Int
     @State private var gists : [Gist] = []
     @State private var onLoad : Bool = true
     var body: some View {
@@ -35,6 +38,15 @@ struct GithubGist: View {
             })
         }.toast(isPresenting: $onLoad, alert: {
             AlertToast(displayMode: .alert,type: .regular,title: "LOAD DATA")
+        })
+        .onChange(of: timer, perform: { value in
+            onLoad = true
+            viewmodel.getGist(completion: { result in
+                gists = result
+                onLoad = false
+            },failer: {
+                onLoad = false
+            })
         })
     }
     func deleteGist(at indexOffset : IndexSet){

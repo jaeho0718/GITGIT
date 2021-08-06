@@ -15,7 +15,7 @@ struct IssueGroupBoxStyle : GroupBoxStyle{
             configuration.label.foregroundColor(.secondary).font(.headline)
             Divider()
             configuration.content.padding(.top,5)
-        }.padding(10).background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow)).clipShape(RoundedRectangle(cornerRadius: 5))
+        }.padding(10).background(VisualEffectView(material: .popover, blendingMode: .withinWindow)).clipShape(RoundedRectangle(cornerRadius: 5))
     }
 }
 
@@ -51,6 +51,6 @@ struct VisualEffectView: NSViewRepresentable{
 
 struct LinkGroupBoxStyle : GroupBoxStyle{
     func makeBody(configuration: Configuration) -> some View {
-        configuration.content.padding(10).background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow)).clipShape(RoundedRectangle(cornerRadius: 10))
+        configuration.content.padding(10).background(VisualEffectView(material: .popover, blendingMode: .withinWindow)).clipShape(RoundedRectangle(cornerRadius: 5))
     }
 }

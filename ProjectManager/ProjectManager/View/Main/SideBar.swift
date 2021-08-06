@@ -21,7 +21,10 @@ struct SideBar: View {
                 }
                 List{
                     NavigationLink(destination: HomeView(),isActive:$home){
-                        Label("Home", systemImage: "house.fill")
+                        Label("HOME", systemImage: "house.fill")
+                    }.accentColor(.gray)
+                    NavigationLink(destination:StarredList()){
+                        Label("STARRED", systemImage: "star.fill")
                     }.accentColor(.gray)
                     NavigationLink(destination:GithubGist()){
                         Label("GITHUB GIST", systemImage: "chevron.left.slash.chevron.right")

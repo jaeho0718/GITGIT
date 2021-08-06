@@ -26,87 +26,85 @@ struct MemoDetailView: View {
         return viewmodel.Sites.filter{$0.tagID == research.tagID}.sorted(by:{$0.rate > $1.rate})
     }
     var body: some View {
-        List{
-            if editmemo{
-                GroupBox(label: Text("Hash")){
-                    TextField("hash", text: $hash_str)
-                }.groupBoxStyle(IssueGroupBoxStyle())
-            }else{
-                ScrollView(.horizontal){
-                    LazyHStack{
-                        ForEach(viewmodel.Hashtags.filter({$0.tagID == research.tagID})){ tag in
-                            Text("# \(tag.tag ?? "no tag")")
-                                .foregroundColor(.white)
-                                .padding([.leading,.trailing],10).padding([.top,.bottom],5).background(Color.black)
+        Form {
+            List{
+                if editmemo{
+                    Section(header: Text("Tag")){
+                        TextField("Tag", text: $hash_str)
+                    }
+                }else{
+                    ScrollView(.horizontal){
+                        LazyHStack{
+                            ForEach(viewmodel.Hashtags.filter({$0.tagID == research.tagID})){ tag in
+                                Text("# \(tag.tag ?? "no tag")")
+                                    .foregroundColor(.white)
+                                    .padding([.leading,.trailing],10).padding([.top,.bottom],5).background(Color.black)
+                            }
                         }
                     }
                 }
-            }
-            if research.issue_url != nil{
-                if let issue = issue_opt{
-                    IssueCell(drag_condition:false,issue: issue, repo: repo)
-                }else{
-                    EmptyIssue()
+                if research.issue_url != nil{
+                    if let issue = issue_opt{
+                        IssueCell(drag_condition:false,issue: issue, repo: repo)
+                    }else{
+                        EmptyIssue()
+                    }
                 }
-            }
-            GroupBox(label:Text("memo")){
-                if editmemo{
-                    MarkDownEditor(memo: $memo,repository:repo)
-                }else{
-                    Markdown("\(memo)")
-                }
-            }.groupBoxStyle(IssueGroupBoxStyle())
-            Group{
-                if editmemo{
-                    GroupBox{
-                        HStack{
-                            TextField("url", text: $web_site_url,onCommit:{
-                                saveSite(web_site_url)
-                                web_site_url = ""
-                            }).textFieldStyle(PlainTextFieldStyle())
-                            Button(action:{
-                                saveSite(web_site_url)
-                                web_site_url = ""
-                            }){
-                                Image(systemName: "plus")
+                Section(header:Text("memo")){
+                    if editmemo{
+                        MarkDownEditor(memo: $memo,repository:repo)
+                    }else{
+                        Markdown("\(memo)")
+                        Divider()
+                    }
+                }//.groupBoxStyle(IssueGroupBoxStyle())
+                Group{
+                    if editmemo{
+                        GroupBox{
+                            HStack{
+                                TextField("url", text: $web_site_url,onCommit:{
+                                    saveSite(web_site_url)
+                                    web_site_url = ""
+                                }).textFieldStyle(PlainTextFieldStyle())
+                                Button(action:{
+                                    saveSite(web_site_url)
+                                    web_site_url = ""
+                                }){
+                                    Image(systemName: "plus")
+                                }
                             }
-                        }
-                    }.groupBoxStyle(LinkGroupBoxStyle()).padding([.top,.bottom],5)
-                }
-                ForEach(sites){ site in
-                    LinkCell(data: site, keyword : viewmodel.Hashtags.filter({$0.tagID == research.tagID}).first?.tag,research: research)
-                }.onDelete(perform: deleteResearch)
-                if viewmodel.Sites.filter({$0.tagID == research.tagID}).isEmpty{
-                    Rectangle().foregroundColor(.clear).frame(height:100)
-                }
-            }.onDrop(of: [.url], delegate: UrlDrop(completion: { url in
-                saveSite(url)
-            }))
-            if editmemo{
-                HStack{
+                        }.groupBoxStyle(LinkGroupBoxStyle()).padding([.top,.bottom],5)
+                    }
+                    ForEach(sites){ site in
+                        LinkCell(data: site, keyword : viewmodel.Hashtags.filter({$0.tagID == research.tagID}).first?.tag,research: research)
+                    }.onDelete(perform: deleteResearch)
+                    if viewmodel.Sites.filter({$0.tagID == research.tagID}).isEmpty{
+                        Rectangle().foregroundColor(.clear).frame(height:100)
+                    }
+                }.onDrop(of: [.url], delegate: UrlDrop(completion: { url in
+                    saveSite(url)
+                }))
+            }
+            .navigationSubtitle(Text(research.name ?? "타이틀을 불러올 수 없음"))
+            .onAppear{
+                setValue()
+            }
+            .toolbar{
+                ToolbarItem{
                     Button(action:{
-                        saveNew()
-                        editmemo = false
+                        if editmemo{
+                            saveNew()
+                        }
+                        editmemo.toggle()
                     }){
-                        Text("변경사항 저장하기")
-                    }.keyboardShortcut(KeyEquivalent("s"), modifiers: .command)
-                }.frame(maxWidth:.infinity)
-            }
-        }
-        .navigationSubtitle(Text(research.name ?? "타이틀을 불러올 수 없음"))
-        .onAppear{
-            setValue()
-        }
-        .toolbar{
-            ToolbarItem{
-                Button(action:{editmemo.toggle()}){
-                    Label("편집", systemImage: "slider.horizontal.3")
+                        Text(editmemo ? "저장" : "편집")
+                    }
                 }
             }
-        }
-        .toast(isPresenting: $noURL, alert: {
-            AlertToast(displayMode: .alert, type: .regular,subTitle: "빈 URL은 추가할 수 없습니다.")
+            .toast(isPresenting: $noURL, alert: {
+                AlertToast(displayMode: .alert, type: .regular,subTitle: "빈 URL은 추가할 수 없습니다.")
         })
+        }
     }
     func setValue(){
         for hash in viewmodel.Hashtags.filter({$0.tagID == research.tagID}){

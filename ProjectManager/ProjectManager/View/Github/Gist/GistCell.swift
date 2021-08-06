@@ -38,7 +38,7 @@ struct GistCell: View {
             }
         )){
             if show_detail{
-                CodeView(theme:  colorScheme == .dark ? SettingValue.getTheme(viewmodel.settingValue.code_type_dark) : SettingValue.getTheme(viewmodel.settingValue.code_type_light), code: $code, mode: FileType.getType(data.files.first?.value.filename ?? "Null.swift").code_mode.mode(), fontSize: 12, showInvisibleCharacters: false, lineWrapping: false).frame(minHeight:300,maxHeight:600)
+                PatchTextView(normalMode: true, patch: code)
                 Divider()
                 Markdown("\(data.description)")
             }else{

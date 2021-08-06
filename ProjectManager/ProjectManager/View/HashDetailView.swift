@@ -29,7 +29,6 @@ struct LinkCell : View{
             }
         }.groupBoxStyle(LinkGroupBoxStyle())
         .onDrag {
-            //optional 처리하기
             if let url = NSURL(string: data.url ?? ""){
                 return NSItemProvider(object: url)
             }else{

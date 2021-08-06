@@ -96,7 +96,7 @@ struct BasicSetting : View{
     @Binding var language : SettingValue.language
     @Binding var autoKeyword : Bool
     @Binding var autoSearch : Bool
-    @SceneStorage("background") private var wallpaper : String = ""
+    @State private var wallpaper : String = ""
     var body: some View{
         ScrollView(.vertical){
             VStack{
@@ -110,11 +110,19 @@ struct BasicSetting : View{
                 TextField("홈 배경화면", text: $wallpaper,onCommit:{
                     UserDefaults.standard.setValue(wallpaper, forKey: "wallpaper")
                 })
+                if let url = URL(string: wallpaper){
+                    AsyncImage(url: url, placeholder: {
+                        Text("IMG")
+                    })
+                }
+                /*
                 Toggle("오토 키워드", isOn: $autoKeyword).toggleStyle(SwitchToggleStyle())
                     .frame(maxWidth:.infinity)
                 Toggle("검색 추천", isOn: $autoSearch).toggleStyle(SwitchToggleStyle())
-                    .frame(maxWidth:.infinity)
+                    .frame(maxWidth:.infinity)*/
             }.padding()
+        }.onAppear{
+            wallpaper = UserDefaults.standard.string(forKey: "wallpaper") ?? ""
         }
     }
 }

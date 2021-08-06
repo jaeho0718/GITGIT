@@ -12,6 +12,7 @@ struct MarkDownEditor: View {
     @Binding var memo : String
     @State private var nowpositoin : Int = 0
     var repository : Repository? = nil
+    var filename : String? = nil
     var tool : some View{
         ScrollView(.horizontal,showsIndicators:false){
             HStack(alignment:.center){
@@ -21,6 +22,8 @@ struct MarkDownEditor: View {
                     var key = "\n```\n //CODE \n```"
                     if let repo = repository,let language = repo.language{
                         key = "\n```\(language)\n //CODE \n```"
+                    }else if let file = filename{
+                        key = "\n```\(FileType.getType(file).name)\n //CODE \n```"
                     }
                     memo.insert(contentsOf: key, at: s_Index)
                 }){

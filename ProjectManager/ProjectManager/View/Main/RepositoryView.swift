@@ -79,9 +79,9 @@ struct RepositoryView: View {
                  */
                 Divider()
                 Section(header:Label(
-                    title: { Text("CODE REVIEW") },
-                    icon: { Image("codefile").resizable().aspectRatio(contentMode: .fit).frame(width:15,height:15)}
-                ),footer:Text("Files에서 드래그앤 드롭을 통해 파일을 추가할 수 있습니다.").font(.caption2).opacity(0.5)){
+                    title: { Text("CODE COLLECT") },
+                    icon: { Image(systemName: "chevron.left.slash.chevron.right").resizable().aspectRatio(contentMode: .fit).frame(width:15,height:15)}
+                ),footer:Text("Files에서 드래그앤 드롭을 통해 코드를 추가할 수 있습니다.").font(.caption2).opacity(0.5)){
                     ForEach(viewmodel.Codes.filter({$0.repo_id == repo_data.id})){ code in
                         CodeReviews_Cell(code: code)
                     }.onDelete(perform: deleteCodeReviews)
@@ -96,24 +96,31 @@ struct RepositoryView: View {
                             })
                         }
                     }
+                }, completionGit: { file in
+                    DispatchQueue.main.async {
+                        if let id = repo_data.id{
+                            viewmodel.saveCode(repo_id: id, title: file.name, path: "", code: file.code)
+                            viewmodel.fetchData()
+                        }
+                    }
                 }))
                 Divider()
                 Section(header:
                     Label(
                         title: { Text("tags") },
-                        icon: { Image(systemName:"tag.circle").resizable().aspectRatio(contentMode: .fit).frame(width:15,height:15)}
+                        icon: { Image(systemName:"tag").resizable().aspectRatio(contentMode: .fit).frame(width:15,height:15)}
                     )
                 ){
-                    ForEach(viewmodel.Hashtags.filter{ tags in
+                    ForEach(removeDuplicate(viewmodel.Hashtags.filter{ tags in
                         for research in viewmodel.Researchs.filter({$0.tagID == tags.tagID}){
                             if research.id == repo_data.id{
                                 return true
                             }
                         }
                         return false
-                    }){ hashtag in
+                    }.map{$0.tag ?? ""}),id:\.self){ hashtag in
                         NavigationLink(destination:HashTagView(repo: repo_data, tag: hashtag)){
-                            Label(hashtag.tag ?? "", systemImage: "tag.fill").accentColor(.black)
+                            Label(hashtag, systemImage: "grid").accentColor(.secondaryLabel)
                         }
                     }
                 }
@@ -159,6 +166,15 @@ struct RepositoryView: View {
             viewmodel.fetchData()
         }
     }
+    func removeDuplicate(_ list : [String])->[String]{
+        var newlist : [String] = []
+        for element in list{
+            if !(newlist.contains(element)){
+                newlist.append(element)
+            }
+        }
+        return newlist
+    }
 }
 
 struct IssueDrop : DropDelegate{
@@ -186,12 +202,15 @@ struct IssueDrop : DropDelegate{
 
 struct CodeDrop : DropDelegate{
     var completion : (GitFile)->()
+    var completionGit : (GitSearchView.file)->()
     func performDrop(info: DropInfo) -> Bool {
         if let item = info.itemProviders(for: [.data]).first{
             item.loadDataRepresentation(forTypeIdentifier: "public.data", completionHandler: { (data,error) in
                 if let DATA = data{
                     if let file = try? JSONDecoder().decode(GitFile.self, from: DATA){
                         completion(file)
+                    }else if let file = try? JSONDecoder().decode(GitSearchView.file.self, from: DATA){
+                        completionGit(file)
                     }
                 }
             })

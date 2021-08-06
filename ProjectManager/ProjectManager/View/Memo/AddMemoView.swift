@@ -54,8 +54,8 @@ struct AddMemoView: View {
                 Section(header: Text("Title")){
                     TextField("타이틀", text: $title)
                 }
-                Section(header:Text("Hash")){
-                    TextField("해시태그", text: $hash_str)
+                Section(header:Text("Tag")){
+                    TextField("태그", text: $hash_str)
                 }
                 Section(header:Text("memo")){
                     MarkDownEditor(memo: $memo,repository: viewmodel.Repositories.first(where: {$0.id == repo_ID}))

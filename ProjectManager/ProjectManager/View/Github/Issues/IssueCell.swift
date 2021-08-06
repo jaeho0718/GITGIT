@@ -83,7 +83,7 @@ struct IssueCell : View{
                 Text(viewmodel.UserInfo?.user_name ?? "")
                 Spacer()
             }
-            MarkDownEditor(memo: $comment)
+            MarkDownEditor(memo: $comment,repository: repo)
         }
     }
     var body: some View{
@@ -110,7 +110,6 @@ struct IssueCell : View{
                         commentDetail
                     }
                     if comment_add{
-                        Divider()
                         addCommentView
                     }
                     bottomButton

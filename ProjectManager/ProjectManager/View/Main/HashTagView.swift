@@ -12,13 +12,13 @@ import WaterfallGrid
 struct HashTagView: View {
     @EnvironmentObject var viewmodel : ViewModel
     var repo : Repository
-    var tag : Hashtag
+    var tag : String
     @State private var searchResults : [GitSearchItem] = []
     @State private var onLoad : Bool = true
     var sites : [Site]{
         return viewmodel.Sites.filter({ site in
             for tags in viewmodel.Hashtags.filter({$0.tagID == site.tagID}){
-                if tags.tag == tag.tag{
+                if tags.tag == tag{
                     return true
                 }
             }
@@ -54,7 +54,7 @@ struct HashTagView: View {
         ScrollView(.vertical,showsIndicators : false){
             VStack(spacing:20){
                 HStack{
-                    Text("# \(tag.tag ?? "Null")").font(.largeTitle).bold()
+                    Text("# \(tag)").font(.largeTitle).bold()
                     Spacer()
                 }
                 ScrollView(.horizontal,showsIndicators:false){
@@ -77,7 +77,7 @@ struct HashTagView: View {
         .padding(10)
         .onAppear{
             DispatchQueue.global().async {
-                viewmodel.getGitSearch(keyword: tag.tag ?? "", language: repo.language, completion: { result in
+                viewmodel.getGitSearch(keyword: tag, language: repo.language, completion: { result in
                     self.searchResults = result.items.filter({$0.repository.owner.login != viewmodel.UserInfo?.user_name})
                     onLoad = false
                 }, failer: {

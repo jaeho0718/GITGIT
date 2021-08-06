@@ -19,6 +19,7 @@ enum initial_state {
 
 struct StartView: View {
     @EnvironmentObject var viewmodel : ViewModel
+    @Binding var internetConnect : Bool
     @Binding var initialState : initial_state
     @State private var page : start_page = .start
     @State private var language : SettingValue.language = .Korean
@@ -48,12 +49,24 @@ struct StartView: View {
                 Start5(state: $initialState)
             }
         }.frame(width:1280,height:720)
+        .allowsHitTesting(internetConnect)
+        .blur(radius: !internetConnect ? 10 : 0)
+        .overlay({
+            ZStack{
+                if !internetConnect{
+                    VStack(spacing:30){
+                        LoadSearch()
+                        Text("인터넷을 연결해주세요.")
+                    }
+                }
+            }
+        })
     }
 }
 
 struct StartView_Previews: PreviewProvider {
     static var previews: some View {
-        StartView(initialState: .constant(.start)).environmentObject(ViewModel())
+        StartView(internetConnect: .constant(true), initialState: .constant(.start)).environmentObject(ViewModel())
     }
 }
 
@@ -345,7 +358,6 @@ struct Start5 : View{
             HStack{
                 Image(systemName: "books.vertical").resizable().aspectRatio(contentMode: .fit).frame(width:50)
                 HStack{
-                    Text("BETA").font(.caption2).italic().padding(4).overlay(Capsule().stroke()).foregroundColor(.red).opacity(0.8)
                     Text("자동으로 추천해주는 자료를 확인하세요.")
                 }
                 Spacer()
@@ -358,6 +370,9 @@ struct Start5 : View{
                 Text("시작하기")
             }.buttonStyle(AddButtonStyle())
         }.frame(width:400,height:400)
+        .padding()
+        .background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 }
 

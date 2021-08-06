@@ -237,18 +237,22 @@ struct PatchTextView : View{
         return items
     }
     var body: some View{
-        VStack(alignment:.leading,spacing:1){
+        VStack(alignment:.leading,spacing:0.5){
             ForEach(codes,id:\.number){ code in
-                HStack(alignment:.top,spacing:4){
+                HStack(alignment:.center,spacing:4){
                     if normalMode{
-                        Text("\(code.number)").foregroundColor(.secondary)
-                            .frame(minWidth:30,maxHeight:.infinity)
-                            .background(Rectangle().foregroundColor(.gray).opacity(0.1))
+                        ZStack(alignment:.center){
+                            Rectangle().foregroundColor(.systemGray).opacity(0.1).frame(maxHeight:60)
+                            Text("\(code.number)").foregroundColor(.secondary)
+                                .font(.custom("SourceCodePro-Medium", size: 12)).padding([.top,.bottom],2)
+                        }.frame(minWidth:30,maxWidth:40)
                     }
                     Text(code.code)
                         .foregroundColor(code.fontColor)
+                        .font(.custom("SourceCodePro-Medium", size: 12))
                         .background(Rectangle().foregroundColor(code.backColor).opacity(0.1))
-                }
+                    Spacer()
+                }.fixedSize(horizontal: false, vertical: true)
             }
         }.onAppear{
             //print(codes)

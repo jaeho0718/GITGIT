@@ -14,20 +14,24 @@ struct CommitChart : View{
     @EnvironmentObject var viewmodel : ViewModel
     @State private var entities : [Double] = []
     @State private var onLoad : Bool = true
+    let month = ["","January","February","March","April","May","June","July","August","September","October","November","December"]
     @TimerState(interval: 60) var timer : Int
     var body: some View{
-        VStack{
-            HStack{
-                Text("Commits").bold().padding(.top,5).font(.title).padding(.leading).padding(.top,5)
-                Spacer()
-            }
-            if !onLoad{
-                Chart(data: entities)
-                    .chartStyle(
-                        LineChartStyle(.quadCurve, lineColor: .green, lineWidth: 5)
-                    )
-            }else{
-                Spacer()
+        ZStack(alignment:.center){
+            Text(month[Date().get(.month)]).font(.system(size:115)).bold().opacity(0.2).clipped()
+            VStack{
+                HStack{
+                    Text("Commits").bold().padding(.top,5).font(.title).padding(.leading).padding(.top,5)
+                    Spacer()
+                }
+                if !onLoad{
+                    Chart(data: entities.reversed())
+                        .chartStyle(
+                            ColumnChartStyle(column: Capsule().foregroundColor(.green), spacing: 2)
+                        )
+                }else{
+                    Spacer()
+                }
             }
         }.frame(minWidth:300,maxWidth:.infinity)
         .background(VisualEffectView(material: .popover, blendingMode: .withinWindow))
@@ -41,6 +45,7 @@ struct CommitChart : View{
     }
     
     func createEntities(){
+        entities.removeAll()
         onLoad = true
         let dateformatter = DateFormatter()
         dateformatter.dateFormat = "YYYY-MM-dd"
@@ -48,7 +53,11 @@ struct CommitChart : View{
         let month = Date().get(.month)
         let year = Date().get(.year)
         var entityInfo : [Int:Int] = [:]
-        for toDay in 1...day{
+        let calendar = Calendar.current
+        let date1 = calendar.date(byAdding: .month, value: 0, to: Date())!
+        let range = calendar.range(of: .day, in: .month, for: date1)!
+        let numDays = range.count //이번달 수
+        for toDay in 1...numDays{
             entityInfo[toDay] = 0
         }
         DispatchQueue.main.async {

@@ -19,7 +19,7 @@ struct ProjectManagerApp: App {
         WindowGroup{
             SwitchOver(start)
                 .case(.start, content: {
-                    StartView(initialState: $start).environmentObject(viewmodel)
+                    StartView(internetConnect: $connectInternet, initialState: $start).environmentObject(viewmodel)
                 })
                 .case(.content, content: {
                     ContentView(internetConnect: $connectInternet).environmentObject(viewmodel)
